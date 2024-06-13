@@ -101,7 +101,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
 > --unet_model_name_or_path : the model path of a subset of unet parameters 
 
 > 📌 Pose-based generation is a relative simple task. And in most cases, it is enough to just load the control module by `--controlnet_model_name_or_path`. However, sometime the task is hard so it is need to select some subset of the original unet parameters to fit the task (Can be seen as another kind of LoRA). \
-> More parameters mean weaker generality, so you can make your own tradeoff. Or directly train your own models based on your own data. The training is also fase.
+> More parameters mean weaker generality, so you can make your own tradeoff. Or directly train your own models based on your own data. The training is also fast.
 
 # 📃 Model Zoo
 

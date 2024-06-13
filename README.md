@@ -17,3 +17,12 @@
 
 
 # 🎥 Examples
+
+### [ControlAny-SD1.5](ControlAny-SD1.5)
+
+<p align="center">
+  <img src="ControlAny-SD1.5/examples/deepfashion_multiview/eval_img/DreamShaper.jpg" width="70%" alt="DreamShaper">
+</p>
+<p align="center">
+  <img src="ControlAny-SD1.5/examples/deepfashion_multiview/eval_img/Anythingv3_fischl.jpg" width="70%" alt="Anythingv3">
+</p>

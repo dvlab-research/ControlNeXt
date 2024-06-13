@@ -2,9 +2,9 @@
 
 This is our implementation of ControlAny based on [Stable Diffusion 1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5).
 
-> Please refer to [Examples](#🎥-examples) for further intuitive details.\
-> Please refer to [Inference](#🔧-inference) for more details regarding installation and inference.\
-> Please refer to [Model Zoo](#📃-model-zoo) for more other our trained models.
+> Please refer to [Examples](#examples) for further intuitive details.\
+> Please refer to [Inference](#inference) for more details regarding installation and inference.\
+> Please refer to [Model Zoo](#model-zoo) for more other our trained models.
 
 Our method demonstrates the advantages listed below:
 
@@ -16,7 +16,7 @@ Our method demonstrates the advantages listed below:
 
 
 
-# 🎥 Examples
+# Examples
 
 The demo examples are generated using the ControlAny trained on deepfashion_multiview dataset with utilizing [DreamShaper](https://huggingface.co/Lykon/DreamShaper) as the base model. Our method demonstrates excellent compatibility and can be applied to most other models based on sd1.5 architecture and LoRA. And you can retrain your own model for better performance.
 
@@ -75,7 +75,7 @@ Our method can serve as a plug-and-play module for stable generation.
   <img src="examples/deepfashion_caption/eval_img/warrior_good.jpg" width="70%" alt="Anythingv3">
 </p>
 
-# 🔧 Inference
+# Inference
 
 1. Clone our repository
 2. `cd ControlAny-SD1.5`
@@ -103,7 +103,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
 > 📌 Pose-based generation is a relative simple task. And in most cases, it is enough to just load the control module by `--controlnet_model_name_or_path`. However, sometime the task is hard so it is need to select some subset of the original unet parameters to fit the task (Can be seen as another kind of LoRA). \
 > More parameters mean weaker generality, so you can make your own tradeoff. Or directly train your own models based on your own data. The training is also fast.
 
-# 📃 Model Zoo
+# Model Zoo
 
 We also provide some additional examples, but these are just for demonstration purposes. The training data is relatively small and of low quality.
 

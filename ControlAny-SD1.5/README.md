@@ -120,4 +120,4 @@ We also provide some additional examples, but these are just for demonstration p
 
 # TODO
 
-* do_classifier_free_guidance (in pipeline)
+

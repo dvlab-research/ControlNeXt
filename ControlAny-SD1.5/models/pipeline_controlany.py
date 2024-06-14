@@ -1203,6 +1203,9 @@ class StableDiffusionControlAnyPipeline(
                     t,
                     return_dict=False
                 )
+                if self.do_classifier_free_guidance:
+                    controlnet_output['scale'] = controlnet_output['scale'].repeat(batch_size * 2)[:, None, None, None]
+                    controlnet_output['scale'][:batch_size ] *= 0
                 # mean_latents, std_latents = torch.mean(latent_model_input, dim=(1, 2, 3), keepdim=True), torch.std(latent_model_input, dim=(1, 2, 3), keepdim=True)
                 # mean_control, std_control = torch.mean(controlnet_output, dim=(1, 2, 3), keepdim=True), torch.std(controlnet_output, dim=(1, 2, 3), keepdim=True)
                 # controlnet_output = (controlnet_output - mean_control) * (std_latents / (std_control + 1e-12)) + mean_latents

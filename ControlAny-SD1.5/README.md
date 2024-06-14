@@ -116,3 +116,8 @@ We also provide some additional examples, but these are just for demonstration p
 <p align="center">
   <img src="examples/deepfashoin_mask/eval_img/image_0.jpg" width="70%" alt="Anythingv3">
 </p>
+
+
+# TODO
+
+* do_classifier_free_guidance (in pipeline)

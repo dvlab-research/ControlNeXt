@@ -92,7 +92,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
  --negative_prompt "PBH" "PBH"\
  --controlnet_model_name_or_path pretrained/deepfashion_multiview/unet.safetensors \
  (Optional)--lora_path lora/yuanshen/genshin_124.safetensors \
- (Optional)--unet_model_name_or_path pretrained/deepfashion_multiview/unet.safetensors
+ (Optional, less generality, stricter control)--unet_model_name_or_path pretrained/deepfashion_multiview/unet.safetensors
 ```
 
 > --pretrained_model_name_or_path : pretrained base model, we try on [DreamShaper](https://huggingface.co/Lykon/DreamShaper), [Anything-v3.0](https://huggingface.co/admruul/anything-v3.0), [ori SD](https://huggingface.co/runwayml/stable-diffusion-v1-5) \

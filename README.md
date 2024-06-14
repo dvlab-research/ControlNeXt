@@ -26,3 +26,6 @@
 <p align="center">
   <img src="ControlAny-SD1.5/examples/deepfashion_multiview/eval_img/Anythingv3_fischl.jpg" width="70%" alt="Anythingv3">
 </p>
+<p align="center">
+  <img src="ControlAny-SD1.5/examples/deepfashion_caption/eval_img/chinese_style.jpg" width="70%" alt="Anythingv3">
+</p>

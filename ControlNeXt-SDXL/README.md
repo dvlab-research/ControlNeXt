@@ -1,6 +1,6 @@
-# 🌀 ControlAny-SDXL
+# 🌀 ControlNeXt-SDXL
 
-This is our implementation of ControlAny based on [Stable Diffusion XL](stabilityai/stable-diffusion-xl-base-1.0).
+This is our implementation of ControlNeXt based on [Stable Diffusion XL](stabilityai/stable-diffusion-xl-base-1.0).
 
 > Please refer to [Examples](#examples) for further intuitive details.\
 > Please refer to [Inference](#inference) for more details regarding installation and inference.\
@@ -14,7 +14,7 @@ Our method demonstrates the advantages listed below:
 
 # Examples
 
-The demo examples are generated using the ControlAny trained on vidit_depth dataset with utilizing [DreamShaperXL](https://huggingface.co/Lykon/dreamshaper-xl-1-0) as the base model. Our method demonstrates excellent compatibility and can be applied to most other models based on sd1.5 architecture and LoRA. And you can retrain your own model for better performance.
+The demo examples are generated using the ControlNeXt trained on vidit_depth dataset with utilizing [DreamShaperXL](https://huggingface.co/Lykon/dreamshaper-xl-1-0) as the base model. Our method demonstrates excellent compatibility and can be applied to most other models based on sd1.5 architecture and LoRA. And you can retrain your own model for better performance.
 
 ## BaseModel
 
@@ -47,13 +47,13 @@ Our model can also be directly combined with other publicly available LoRA weigh
 # Inference
 
 1. Clone our repository
-2. `cd ControlAny-SDXL`
+2. `cd ControlNeXt-SDXL`
 3. Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlAny/tree/main/ControlAny-SDXL).
 4. (Optional) Download the LoRA weight, such as [Glass Sculptures](https://civitai.com/models/11203/glass-sculptures?modelVersionId=177888). And put them under `lora/`
 5. Run the scipt
 
 ```python
-CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
+CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
  --pretrained_model_name_or_path "stabilityai/stable-diffusion-xl-base-1.0" \
  --unet_model_name_or_path "pretrained/vidit_depth/unet.safetensors" \
  --controlnet_model_name_or_path "pretrained/vidit_depth/controlnet.safetensors" \

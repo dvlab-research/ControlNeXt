@@ -1,6 +1,6 @@
-# 🌀 ControlAny-SD1.5
+# 🌀 ControlNeXt-SD1.5
 
-This is our implementation of ControlAny based on [Stable Diffusion 1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5).
+This is our implementation of ControlNeXt based on [Stable Diffusion 1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5).
 
 > Please refer to [Examples](#examples) for further intuitive details.\
 > Please refer to [Inference](#inference) for more details regarding installation and inference.\
@@ -18,7 +18,7 @@ Our method demonstrates the advantages listed below:
 
 # Examples
 
-The demo examples are generated using the ControlAny trained on deepfashion_multiview dataset with utilizing [DreamShaper](https://huggingface.co/Lykon/DreamShaper) as the base model. Our method demonstrates excellent compatibility and can be applied to most other models based on sd1.5 architecture and LoRA. And you can retrain your own model for better performance.
+The demo examples are generated using the ControlNeXt trained on deepfashion_multiview dataset with utilizing [DreamShaper](https://huggingface.co/Lykon/DreamShaper) as the base model. Our method demonstrates excellent compatibility and can be applied to most other models based on sd1.5 architecture and LoRA. And you can retrain your own model for better performance.
 
 ## BaseModel
 
@@ -65,12 +65,12 @@ Sometimes, it is difficult to generate good results, and you have to repeatedly 
 
 Our method can serve as a plug-and-play module for stable generation.
 
-* Without ControlAny (Use original [SD](https://huggingface.co/runwayml/stable-diffusion-v1-5) as base model)
+* Without ControlNeXt (Use original [SD](https://huggingface.co/runwayml/stable-diffusion-v1-5) as base model)
 <p align="center">
   <img src="examples/deepfashion_caption/eval_img/warrior_bad.jpg" width="50%" alt="Anythingv3">
 </p>
 
-* With ControlAny (Use original [SD](https://huggingface.co/runwayml/stable-diffusion-v1-5) as base model)
+* With ControlNeXt (Use original [SD](https://huggingface.co/runwayml/stable-diffusion-v1-5) as base model)
 <p align="center">
   <img src="examples/deepfashion_caption/eval_img/warrior_good.jpg" width="70%" alt="Anythingv3">
 </p>
@@ -78,13 +78,13 @@ Our method can serve as a plug-and-play module for stable generation.
 # Inference
 
 1. Clone our repository
-2. `cd ControlAny-SD1.5`
+2. `cd ControlNeXt-SD1.5`
 3. Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlAny/tree/main/ControlAny-SD1.5). (Recommended to use `deepfashion_multiview` and `deepfashion_caption`)
 5. (Optional) Download the LoRA weight, such as [Genshin](https://civitai.com/models/362091/sd15all-characters-genshin-impact-124-characters-124). And put them under `lora/`
 4. Run the scipt
 
 ```python
-CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
+CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
  --pretrained_model_name_or_path="admruul/anything-v3.0" \
  --output_dir="examples/deepfashion_multiview" \
  --validation_image "examples/deepfashion_multiview/condition_0.jpg"  "examples/deepfashion_multiview/condition_1.jpg"  \

@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
+CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
  --pretrained_model_name_or_path="admruul/anything-v3.0" \
  --output_dir="examples/deepfashion_multiview" \
  --validation_image "examples/deepfashion_multiview/condition_0.jpg"  "examples/deepfashion_multiview/condition_1.jpg"  \
@@ -9,7 +9,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
  --unet_model_name_or_path pretrained/deepfashion_multiview/unet.safetensors
 
 
-CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
+CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
  --pretrained_model_name_or_path="admruul/anything-v3.0" \
  --output_dir="examples/deepfashion_multiview" \
  --validation_image "examples/deepfashion_multiview/condition_0.jpg"  "examples/deepfashion_multiview/condition_1.jpg" \
@@ -18,7 +18,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
  --controlnet_model_name_or_path pretrained/deepfashion_multiview/controlnet.safetensors \
  --unet_model_name_or_path pretrained/deepfashion_multiview/unet.safetensors
 
-CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
+CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
  --pretrained_model_name_or_path="admruul/anything-v3.0" \
  --output_dir="examples/deepfashion_multiview" \
  --validation_image "examples/deepfashion_multiview/condition_0.jpg"  "examples/deepfashion_multiview/condition_1.jpg" \
@@ -27,7 +27,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
  --lora_path lora/yuanshen/genshin_124.safetensors \
  --controlnet_model_name_or_path pretrained/deepfashion_multiview/controlnet.safetensors \
 
-CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
+CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
  --pretrained_model_name_or_path="admruul/anything-v3.0" \
  --output_dir="examples/deepfashion_multiview" \
  --validation_image "examples/deepfashion_multiview/condition_0.jpg"  "examples/deepfashion_multiview/condition_1.jpg" \
@@ -39,7 +39,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
 
 
 # base generation
-CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
+CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
  --pretrained_model_name_or_path="Lykon/DreamShaper" \
  --output_dir="examples/deepfashion_multiview" \
  --validation_image "examples/deepfashion_multiview/condition_0.jpg"  "examples/deepfashion_multiview/condition_1.jpg"\
@@ -50,7 +50,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
 
 
 # Combine with LoRA
-CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
+CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
  --pretrained_model_name_or_path="runwayml/stable-diffusion-v1-5" \
  --output_dir="examples/deepfashion_multiview" \
  --validation_image "examples/deepfashion_multiview/condition_0.jpg"  "examples/deepfashion_multiview/condition_1.jpg"\
@@ -61,7 +61,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
  --unet_model_name_or_path pretrained/deepfashion_multiview/unet.safetensors
 
 # Combine with LoRA, without our control
-CUDA_VISIBLE_DEVICES=0 python run_controlany.py \
+CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
  --pretrained_model_name_or_path="runwayml/stable-diffusion-v1-5" \
  --output_dir="examples/deepfashion_multiview" \
  --validation_image "examples/deepfashion_multiview/condition_0.jpg"  "examples/deepfashion_multiview/condition_1.jpg" \

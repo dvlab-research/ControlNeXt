@@ -120,7 +120,7 @@ def retrieve_timesteps(
     return timesteps, num_inference_steps
 
 
-class StableDiffusionControlAnyPipeline(
+class StableDiffusionControlNextPipeline(
     DiffusionPipeline, TextualInversionLoaderMixin, LoraLoaderMixin, IPAdapterMixin, FromSingleFileMixin
 ):
     r"""

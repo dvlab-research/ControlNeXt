@@ -6,8 +6,8 @@ from PIL import Image
 import argparse
 import gc
 from safetensors.torch import load_file
-from models.pipeline_controlany import StableDiffusionXLControlAnyPipeline
-from models.unet import ControlAnyUNet2DConditionModel
+from models.pipeline_controlnext import StableDiffusionXLControlNeXtPipeline
+from models.unet import ControlNeXtUNet2DConditionModel
 from models.controlnet import ControlNetModel
 from diffusers import UniPCMultistepScheduler, StableDiffusionXLPipeline, AutoencoderKL
 from transformers import PretrainedConfig
@@ -22,7 +22,7 @@ def log_validation(
         print(f"loading controlnet from {args.controlnet_model_name_or_path}")
         controlnet = ControlNetModel.from_pretrained(args.controlnet_model_name_or_path, cache_dir=args.hf_cache_dir).to(device, dtype=torch.float32)
         pipeline_init_kwargs["controlnet"] = controlnet
-    unet = ControlAnyUNet2DConditionModel.from_pretrained(
+    unet = ControlNeXtUNet2DConditionModel.from_pretrained(
         args.pretrained_model_name_or_path,
         subfolder="unet",
         revision=args.revision,
@@ -31,18 +31,18 @@ def log_validation(
     )
     if args.unet_model_name_or_path is not None:
         print(f"loading unet from {args.unet_model_name_or_path}")
-        controlany_unet_sd = load_file(args.unet_model_name_or_path)
+        controlnext_unet_sd = load_file(args.unet_model_name_or_path)
         if args.load_weight_increasement:
-            unet_sd = load_controlany_unet_state_dict(unet.state_dict(), controlany_unet_sd)
+            unet_sd = load_controlnext_unet_state_dict(unet.state_dict(), controlnext_unet_sd)
         else:
-            unet_sd = convert_to_controlany_unet_state_dict(controlany_unet_sd)
+            unet_sd = convert_to_controlnext_unet_state_dict(controlnext_unet_sd)
         unet.load_state_dict(unet_sd, strict=False)
     if args.vae_model_name_or_path is not None:
         print(f"loading vae from {args.vae_model_name_or_path}")
         vae = AutoencoderKL.from_pretrained(args.vae_model_name_or_path, cache_dir=args.hf_cache_dir).to(device)
         pipeline_init_kwargs["vae"] = vae
     print(f"loading pipeline from {args.pretrained_model_name_or_path}")
-    pipeline: StableDiffusionXLControlAnyPipeline = StableDiffusionXLControlAnyPipeline.from_pretrained(
+    pipeline: StableDiffusionXLControlNeXtPipeline = StableDiffusionXLControlNeXtPipeline.from_pretrained(
         args.pretrained_model_name_or_path,
         unet=unet,
         revision=args.revision,
@@ -309,9 +309,9 @@ def fix_clip_text_encoder_position_ids(text_encoder):
         text_encoder.text_model.embeddings.position_ids = text_encoder.text_model.embeddings.position_ids.long()
 
 
-def convert_unet_to_controlany_unet(orig_unet):
-    print(f"converting unet to controlany unet")
-    unet = ControlAnyUNet2DConditionModel.from_config(orig_unet.config)
+def convert_unet_to_controlnext_unet(orig_unet):
+    print(f"converting unet to controlnext unet")
+    unet = ControlNeXtUNet2DConditionModel.from_config(orig_unet.config)
     unet.load_state_dict(orig_unet.state_dict())
     unet = unet.to(orig_unet.device, dtype=orig_unet.dtype)
     del orig_unet
@@ -321,14 +321,14 @@ def convert_unet_to_controlany_unet(orig_unet):
     return unet
 
 
-def load_controlany_unet_state_dict(unet_sd, controlany_unet_sd):
-    assert all(k in unet_sd for k in controlany_unet_sd), "controlany unet state dict is not compatible with unet state dict"
-    for k in controlany_unet_sd.keys():
-        unet_sd[k] = controlany_unet_sd[k]
+def load_controlnext_unet_state_dict(unet_sd, controlnext_unet_sd):
+    assert all(k in unet_sd for k in controlnext_unet_sd), "controlnext unet state dict is not compatible with unet state dict"
+    for k in controlnext_unet_sd.keys():
+        unet_sd[k] = controlnext_unet_sd[k]
     return unet_sd
 
 
-def convert_to_controlany_unet_state_dict(state_dict):
+def convert_to_controlnext_unet_state_dict(state_dict):
     if contains_unet_keys(state_dict):
         state_dict = extract_unet_state_dict(state_dict)
     if is_sdxl_state_dict(state_dict):
@@ -470,15 +470,15 @@ def contains_unet_keys(state_dict):
     return any(k.startswith(UNET_KEY_PREFIX) for k in state_dict.keys())
 
 
-def convert_controlany_unet_state_dict_to_unet_state_dict(controlany_unet_sd, unet_sd, weight_increasement):
-    if contains_unet_keys(controlany_unet_sd):
-        controlany_unet_sd = extract_unet_state_dict(controlany_unet_sd)
-    if is_sdxl_state_dict(controlany_unet_sd):
-        controlany_unet_sd = convert_sdxl_unet_state_dict_to_diffusers(controlany_unet_sd)
+def convert_controlnext_unet_state_dict_to_unet_state_dict(controlnext_unet_sd, unet_sd, weight_increasement):
+    if contains_unet_keys(controlnext_unet_sd):
+        controlnext_unet_sd = extract_unet_state_dict(controlnext_unet_sd)
+    if is_sdxl_state_dict(controlnext_unet_sd):
+        controlnext_unet_sd = convert_sdxl_unet_state_dict_to_diffusers(controlnext_unet_sd)
     if weight_increasement:
-        for k in controlany_unet_sd.keys():
-            controlany_unet_sd[k] = unet_sd[k] + controlany_unet_sd[k]
-    return controlany_unet_sd
+        for k in controlnext_unet_sd.keys():
+            controlnext_unet_sd[k] = unet_sd[k] + controlnext_unet_sd[k]
+    return controlnext_unet_sd
 
 
 if __name__ == "__main__":

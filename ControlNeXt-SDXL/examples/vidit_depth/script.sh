@@ -1,4 +1,4 @@
-python run_controlany.py  --pretrained_model_name_or_path "stabilityai/stable-diffusion-xl-base-1.0" \
+python run_controlnext.py  --pretrained_model_name_or_path "stabilityai/stable-diffusion-xl-base-1.0" \
     --unet_model_name_or_path pretrained/vidit_depth/unet.safetensors \
     --controlnet_model_name_or_path pretrained/vidit_depth/controlnet.safetensors \
     --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \

@@ -10,7 +10,7 @@ import torch.nn as nn
 
 from models.unet import UNet2DConditionModel
 from models.controlnet import ControlNetModel
-from models.pipeline_controlany import StableDiffusionControlAnyPipeline
+from models.pipeline_controlnext import StableDiffusionControlNextPipeline
 from diffusers import UniPCMultistepScheduler, AutoencoderKL
 from transformers import AutoTokenizer, PretrainedConfig
 
@@ -24,7 +24,7 @@ def log_validation(
     device='cuda'
 ):
 
-    pipeline = StableDiffusionControlAnyPipeline.from_pretrained(
+    pipeline = StableDiffusionControlNextPipeline.from_pretrained(
         args.pretrained_model_name_or_path,
         vae=vae,
         text_encoder=text_encoder,

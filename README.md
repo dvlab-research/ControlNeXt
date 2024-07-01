@@ -3,7 +3,7 @@
 
 > 📢 We are initially releasing our code with weights, and further details will be presented in our upcoming paper. Please stay tuned for updates.
 
-> This project is still undergoing iterative development. The code and model may be updated at any time.
+> This project is still undergoing iterative development. The code and model may be updated at any time. More information will be provided later.
 
 # Model Zoo
 
@@ -13,7 +13,7 @@
 
 - **ControlNeXt-SDXL** [ [Link](ControlNeXt-SDXL) ] : Controllable image generation. Our model is built upon [Stable Diffusion XL ](stabilityai/stable-diffusion-xl-base-1.0). Fewer trainable parameters, faster convergence, improved efficiency, and can be integrated with LoRA.
 
-- **ControlNeXt-SD1.5** [ [Link](ControlNeXt-SD3) ] : Stay tuned.
+- **ControlNeXt-SD3** [ [Link](ControlNeXt-SD3) ] : Stay tuned.
 
 - **ControlNeXt-CN** [ [Link](ControlNeXt-CN) ] : Stay tuned.
 

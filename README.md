@@ -22,7 +22,7 @@
 
 
 ### [ControlNeXt-SVD](ControlNeXt-SVD)
-
+![video](ControlNeXt-SVD/outputs/tiktok/tiktok.mp4)
 
 <video width="80%" height='auto' style="display: block; margin: 20px auto;" controls>
   <source src="ControlNeXt-SVD/outputs/tiktok/tiktok.mp4" type="video/mp4">

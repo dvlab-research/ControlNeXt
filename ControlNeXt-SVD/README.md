@@ -13,22 +13,22 @@ Compared to image generation, video generation poses significantly greater chall
 # Examples
 
 <video width="80%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="outputs/tiktok/tiktok.mp4" type="video/mp4">
+  <source src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/e25f5de8-e744-4a22-aaf3-e193bc16f5af" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
 <video width="80%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="outputs/spiderman/spiderman.mp4" type="video/mp4">
+  <source src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/d59f96f3-80f7-4af4-8db7-33f062134185" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
 <video width="40%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="outputs/star/star.mp4" type="video/mp4">
+  <source src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/4138a736-adf1-453d-bede-17f4d21f8919" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
 <video width="40%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="outputs/chair/chair.mp4" type="video/mp4">
+  <source src="[outputs/chair/chair.mp4](https://github.com/dvlab-research/ControlNeXt/assets/22709028/65ea6763-a634-4f33-aeda-d52276e81dd8)" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 

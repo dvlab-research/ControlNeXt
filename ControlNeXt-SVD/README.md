@@ -11,26 +11,15 @@ Compared to image generation, video generation poses significantly greater chall
 > Please refer to [Advanced Performance](#advanced-performance) for more details to achieve a better performance.\
 
 # Examples
+If you can't load the videos, you can also directly download them from [here](outputs).
 
-<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/e25f5de8-e744-4a22-aaf3-e193bc16f5af" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/c0ec7591-2100-42d9-99dd-cc55c5fa006f" muted="false"></video>
 
-<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/d59f96f3-80f7-4af4-8db7-33f062134185" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/5da1ba44-cb92-49c2-95f4-05b8e02ed6eb" muted="false"></video>
 
-<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/4138a736-adf1-453d-bede-17f4d21f8919" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/bc819ca7-81f3-4d63-901a-a1a4b4afc395" muted="false"></video>
 
-<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="[outputs/chair/chair.mp4](https://github.com/dvlab-research/ControlNeXt/assets/22709028/65ea6763-a634-4f33-aeda-d52276e81dd8)" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/adc01423-fcec-467e-a7ab-87a6e1ef5f62" muted="false"></video>
 
 # Base Model
 

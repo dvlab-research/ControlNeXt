@@ -48,7 +48,7 @@ Our model can also be directly combined with other publicly available LoRA weigh
 
 1. Clone our repository
 2. `cd ControlNeXt-SDXL`
-3. Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlAny/tree/main/ControlAny-SDXL).
+3. Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlNeXt/tree/main/ControlAny-SDXL).
 4. (Optional) Download the LoRA weight, such as [Glass Sculptures](https://civitai.com/models/11203/glass-sculptures?modelVersionId=177888). And put them under `lora/`
 5. Run the scipt
 

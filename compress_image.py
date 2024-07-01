@@ -29,3 +29,5 @@ print(merge_imgs.shape)
 resized_img = cv2.resize(merge_imgs, (merge_imgs.shape[1]//2, merge_imgs.shape[0]//2), interpolation=cv2.INTER_AREA)
 print(resized_img.shape)
 cv2.imwrite(save_path, resized_img, [cv2.IMWRITE_JPEG_QUALITY, 85])
+
+img = cv2.resize(img, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_AREA)

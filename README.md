@@ -20,6 +20,30 @@
 
 # 🎥 Examples
 
+
+### [ControlNeXt-SVD](ControlNeXt-SVD)
+
+
+<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls>
+  <source src="ControlNeXt-SVD/outputs/tiktok/tiktok.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls>
+  <source src="ControlNeXt-SVD/outputs/spiderman/spiderman.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls>
+  <source src="ControlNeXt-SVD/outputs/star/star.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls>
+  <source src="ControlNeXt-SVD/outputs/chair/chair.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
 ### [ControlNeXt-SD1.5](ControlNeXt-SD1.5)
 
 <p align="center">

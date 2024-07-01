@@ -79,7 +79,7 @@ Our method can serve as a plug-and-play module for stable generation.
 
 1. Clone our repository
 2. `cd ControlNeXt-SD1.5`
-3. Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlNeXt/tree/main/ControlAny-SD1.5). (Recommended to use `deepfashion_multiview` and `deepfashion_caption`)
+3. Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlNeXt/tree/main/ControlNeXt-SD1.5). (Recommended to use `deepfashion_multiview` and `deepfashion_caption`)
 5. (Optional) Download the LoRA weight, such as [Genshin](https://civitai.com/models/362091/sd15all-characters-genshin-impact-124-characters-124). And put them under `lora/`
 4. Run the scipt
 

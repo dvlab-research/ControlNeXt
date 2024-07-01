@@ -22,27 +22,15 @@
 
 
 ### [ControlNeXt-SVD](ControlNeXt-SVD)
-![video](https://github.com/dvlab-research/ControlNeXt/blob/main/chair.mp4)
+If you can't load the videos, you can also directly download them from [here](ControlNeXt-SVD/outputs).
 
-<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="ControlNeXt-SVD/outputs/tiktok/tiktok.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/c0ec7591-2100-42d9-99dd-cc55c5fa006f" muted="false"></video>
 
-<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="ControlNeXt-SVD/outputs/spiderman/spiderman.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/5da1ba44-cb92-49c2-95f4-05b8e02ed6eb" muted="false"></video>
 
-<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="ControlNeXt-SVD/outputs/star/star.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/bc819ca7-81f3-4d63-901a-a1a4b4afc395" muted="false"></video>
 
-<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls>
-  <source src="ControlNeXt-SVD/outputs/chair/chair.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/adc01423-fcec-467e-a7ab-87a6e1ef5f62" muted="false"></video>
 
 ### [ControlNeXt-SD1.5](ControlNeXt-SD1.5)
 

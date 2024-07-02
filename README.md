@@ -35,6 +35,7 @@ If you can't load the videos, you can also directly download them from [here](Co
 <video width="80%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://www.youtube.com/watch?v=-p1QXIAZROw"  muted="false"></video>
 
 
+
 ### [ControlNeXt-SD1.5](ControlNeXt-SD1.5)
 
 <p align="center">

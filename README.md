@@ -48,13 +48,13 @@ If you can't load the videos, you can also directly download them from [here](Co
 ### [ControlNeXt-SD1.5](ControlNeXt-SD1.5)
 
 <p align="center">
-  <img src="ControlNeXt-SD1.5/examples/deepfashion_multiview/eval_img/DreamShaper.jpg" width="70%" alt="DreamShaper">
+  <img src="ControlNeXt-SD1.5/examples/deepfashion_multiview/eval_img/DreamShaper.jpg" width="90%" alt="DreamShaper">
 </p>
 <p align="center">
-  <img src="ControlNeXt-SD1.5/examples/deepfashion_multiview/eval_img/Anythingv3_fischl.jpg" width="70%" alt="Anythingv3">
+  <img src="ControlNeXt-SD1.5/examples/deepfashion_multiview/eval_img/Anythingv3_fischl.jpg" width="90%" alt="Anythingv3">
 </p>
 <p align="center">
-  <img src="ControlNeXt-SD1.5/examples/deepfashion_caption/eval_img/chinese_style.jpg" width="70%" alt="Anythingv3">
+  <img src="ControlNeXt-SD1.5/examples/deepfashion_caption/eval_img/chinese_style.jpg" width="90%" alt="Anythingv3">
 </p>
 
 
@@ -62,8 +62,8 @@ If you can't load the videos, you can also directly download them from [here](Co
 ### [ControlNeXt-SDXL](ControlNeXt-SDXL)
 
 <p align="center">
-  <img src="ControlNeXt-SDXL/examples/vidit_depth/eval_img/DreamShaper.jpg" width="70%" alt="DreamShaper">
+  <img src="ControlNeXt-SDXL/examples/vidit_depth/eval_img/DreamShaper.jpg" width="90%" alt="DreamShaper">
 </p>
 <p align="center">
-  <img src="ControlNeXt-SDXL/examples/vidit_depth/eval_img/StableDiffusionXL_glass.jpg" width="70%" alt="Lora">
+  <img src="ControlNeXt-SDXL/examples/vidit_depth/eval_img/StableDiffusionXL_glass.jpg" width="90%" alt="Lora">
 </p>

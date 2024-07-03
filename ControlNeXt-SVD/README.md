@@ -88,6 +88,20 @@ We will release the related fine-tuning code later.
 
 We adopt [DWPose](https://github.com/IDEA-Research/DWPose) for the pose generation.
 
+# Limitations
+
+## IP Consistency
+
+We did not prioritize maintaining IP consistency during the development of the generation model and now rely on a helper model for face enhancement. 
+
+However, additional training can be implemented to ensure IP consistency moving forward.
+
+This also leaves a possible direction for futher improvement.
+
+## Base model
+
+The base model plays a crucial role in generating human features, particularly hands and faces. We encourage collaboration to improve the base model for enhanced human-related video generation.
+
 # TODO
 
 * Training and finetune code

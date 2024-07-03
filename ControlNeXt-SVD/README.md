@@ -56,6 +56,35 @@ python run_controlnext.py \
 
 > 📌 If your want to get better generated video, please refer to [Advanced Performance](#advanced-performance) for more details.
 
+5. Face Enhancement (Recommand for human video generation)
+
+> Currently, the model is not specifically trained for IP consistency, as there are already many mature tools available. Additionally, alternatives like Animate Anyone also adopt such post-processing techniques. 
+
+a. Clone [Face Fusion](https://github.com/facefusion/facefusion): \
+```git clone https://github.com/facefusion/facefusion```
+
+b. Ensure to enter the directory:\
+```cd facefusion```
+
+c. Install facefusion:\
+```python install.py```
+
+d. Run the command:
+```
+python run.py \
+  -s ../outputs/collected/demo.jpg \
+  -t ../outputs/collected/demo.mp4 \
+  -o ../outputs/collected/out.mp4 \
+  --headless \
+  --execution-providers cuda  \
+  --face-selector-mode one 
+```
+
+> -s: the reference image \
+> -t: the path to the original video\
+> -o: the path to store the refined video\
+> --headless: no gui need\
+> --execution-providers cuda: use cuda for acceleration (If available, most the cpu is enough)
 
 # Advanced Performance
 In this section, we will delve into additional details and my own experiences to enhance video generation. These factors are algorithm-independent and unrelated to academia, yet crucial for achieving superior results. Many closely related works incorporate these strategies.

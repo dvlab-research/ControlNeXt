@@ -55,8 +55,6 @@ python run_controlnext.py \
 > --controlnet_model_name_or_path : the model path of controlnet (a light weight module) \
 > --unet_model_name_or_path : the model path of unet 
 
-> 📌 If your want to get better generated video, please refer to [Advanced Performance](#advanced-performance) for more details.
-
 5. Face Enhancement (Recommand for human video generation)
 
 > Currently, the model is not specifically trained for IP consistency, as there are already many mature tools available. Additionally, alternatives like Animate Anyone also adopt such post-processing techniques. 

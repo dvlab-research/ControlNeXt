@@ -9,6 +9,7 @@ Compared to image generation, video generation poses significantly greater chall
 > Please refer to [Base model](#base-model) for more details of our used base model. \
 > Please refer to [Inference](#inference) for more details regarding installation and inference.\
 > Please refer to [Advanced Performance](#advanced-performance) for more details to achieve a better performance.\
+> Please refer to [Limitations](#limitations) for more details about the limitations of current work.
 
 # Examples
 If you can't load the videos, you can also directly download them from [here](outputs).

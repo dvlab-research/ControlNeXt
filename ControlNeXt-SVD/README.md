@@ -65,7 +65,7 @@ a. Clone [Face Fusion](https://github.com/facefusion/facefusion): \
 b. Ensure to enter the directory:\
 ```cd facefusion```
 
-c. Install facefusion:\
+c. Install facefusion (Recommand create a new virtual environment using conda to avoid conflicts):\
 ```python install.py```
 
 d. Run the command:

@@ -133,7 +133,7 @@ def parse_args():
     parser.add_argument(
         "--guidance_scale",
         type=float,
-        default=5.5,
+        default=3.5,
         required=False
     )
 

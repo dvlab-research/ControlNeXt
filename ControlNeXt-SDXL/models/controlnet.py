@@ -15,9 +15,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
-import math
 from torch import nn
-from torch.nn import functional as F
 
 from diffusers.configuration_utils import ConfigMixin, register_to_config
 from diffusers.utils import BaseOutput, logging
@@ -297,6 +295,42 @@ class Block2D(nn.Module):
         return hidden_states, output_states
 
 
+class ControlProject(nn.Module):
+    def __init__(self, num_channels, scale=8, is_empty=False) -> None:
+        super().__init__()
+        assert scale and scale & (scale - 1) == 0
+        self.is_empty = is_empty
+        self.scale = scale
+        if not is_empty:
+            if scale > 1:
+                self.down_scale = nn.AvgPool2d(scale, scale)
+            else:
+                self.down_scale = nn.Identity()
+            self.out = nn.Conv2d(num_channels, num_channels, kernel_size=1, stride=1, bias=False)
+            for p in self.out.parameters():
+                nn.init.zeros_(p)
+
+    def forward(
+            self,
+            hidden_states: torch.FloatTensor):
+        if self.is_empty:
+            shape = list(hidden_states.shape)
+            shape[-2] = shape[-2] // self.scale
+            shape[-1] = shape[-1] // self.scale
+            return torch.zeros(shape).to(hidden_states)
+
+        if len(hidden_states.shape) == 5:
+            B, F, C, H, W = hidden_states.shape
+            hidden_states = rearrange(hidden_states, "B F C H W -> (B F) C H W")
+            hidden_states = self.down_scale(hidden_states)
+            hidden_states = self.out(hidden_states)
+            hidden_states = rearrange(hidden_states, "(B F) C H W -> B F C H W", F=F)
+        else:
+            hidden_states = self.down_scale(hidden_states)
+            hidden_states = self.out(hidden_states)
+        return hidden_states
+
+
 class ControlNetModel(ModelMixin, ConfigMixin):
 
     _supports_gradient_checkpointing = True
@@ -329,9 +363,22 @@ class ControlNetModel(ModelMixin, ConfigMixin):
         timestep_input_dim = block_out_channels[0]
         time_embed_dim = 256
         self.time_embedding = TimestepEmbedding(128, time_embed_dim)
-        in_channels = [3, 128, 256]
+        in_channels = [128, 128, 256]
         out_channels = [128, 256, 256]
-        groups = [1, 8, 8]
+        groups = [4, 8, 8]
+
+        self.embedding = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=1),
+            nn.GroupNorm(2, 64),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=3),
+            nn.GroupNorm(2, 64),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, kernel_size=3),
+            nn.GroupNorm(2, 128),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2)
+        )
 
         self.down_res = nn.ModuleList()
         self.down_sample = nn.ModuleList()
@@ -374,14 +421,23 @@ class ControlNetModel(ModelMixin, ConfigMixin):
             ),
             nn.GroupNorm(8, out_channels[-1]),
         ))
-        self.mid_convs.append(nn.Conv2d(
-            in_channels=out_channels[-1],
-            out_channels=1280,
-            kernel_size=1,
-            stride=1,
-        ))
+        self.mid_convs.append(
+            nn.Conv2d(
+                in_channels=out_channels[-1],
+                out_channels=1280,
+                kernel_size=1,
+                stride=1,
+            ))
 
-        self.scale = nn.Parameter(torch.tensor(1.))
+        # self.scale_linear = nn.Linear(time_embed_dim, time_embed_dim)
+        # self.time_out_scale = nn.Linear(time_embed_dim, 1, bias=False)
+        # nn.init.zeros_(self.time_out_scale.weight)
+        # self.out = nn.Conv2d(4, 4, kernel_size=1, stride=1, padding=0)
+        # for p in self.out.parameters():
+        #     nn.init.zeros_(p)
+        # self.scale = nn.Parameter(torch.tensor(1.))
+        self.scale = 1  # nn.Parameter(torch.tensor(1.))
+        # self.scale = nn.Parameter(torch.tensor(0.8766))
 
     def _set_gradient_checkpointing(self, module, value=False):
         if hasattr(module, "gradient_checkpointing"):
@@ -421,13 +477,8 @@ class ControlNetModel(ModelMixin, ConfigMixin):
         self,
         sample: torch.FloatTensor,
         timestep: Union[torch.Tensor, float, int],
-        encoder_hidden_states: torch.Tensor = None,
-        added_time_ids: torch.Tensor = None,
-        controlnet_cond: torch.FloatTensor = None,
-        image_only_indicator: Optional[torch.Tensor] = None,
-        return_dict: bool = True,
-        guess_mode: bool = False,
-        conditioning_scale: float = 1.0,
+        *args,
+        **kwargs
     ) -> Union[ControlNetOutput, Tuple]:
 
         timesteps = timestep
@@ -456,16 +507,26 @@ class ControlNetModel(ModelMixin, ConfigMixin):
 
         emb_batch = self.time_embedding(t_emb)
 
+        # Repeat the embeddings num_video_frames times
+        # emb: [batch, channels] -> [batch * frames, channels]
         emb = emb_batch
+
+        sample = self.embedding(sample)
 
         for res, downsample in zip(self.down_res, self.down_sample):
             sample = res(sample, emb)
             sample = downsample(sample, emb)
 
-        for mid_conv in self.mid_convs:
-            sample = mid_conv(sample)
+        sample = self.mid_convs[0](sample) + sample
+        sample = self.mid_convs[1](sample)
 
         return {
-            "out": sample,
-            "scale":  self.scale
+            'out': sample,
+            'scale': self.scale,
         }
+
+
+def zero_module(module):
+    for p in module.parameters():
+        nn.init.zeros_(p)
+    return module

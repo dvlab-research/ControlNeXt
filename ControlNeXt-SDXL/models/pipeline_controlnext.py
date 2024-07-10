@@ -1267,7 +1267,7 @@ class StableDiffusionXLControlNeXtPipeline(
                     #     scale = scale.repeat(batch_size*2)[:, None, None, None]
                     #     scale[:batch_size] *= 0
                     #     controlnet_output['scale'] = scale
-                    controlnet_output['scale'] = controlnet_output['scale'].to(self.dtype)
+                    controlnet_output['scale'] = controlnet_output['scale']
                     controlnet_output['out'] = controlnet_output['out'].to(self.dtype)
                     unet_additional_args["mid_block_additional_residual"] = controlnet_output
 

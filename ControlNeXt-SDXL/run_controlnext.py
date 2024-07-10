@@ -2,14 +2,15 @@ import os
 import torch
 import cv2
 import numpy as np
-from PIL import Image
 import argparse
 import gc
+import torch.nn as nn
+from PIL import Image
 from safetensors.torch import load_file
 from models.pipeline_controlnext import StableDiffusionXLControlNeXtPipeline
 from models.unet import ControlNeXtUNet2DConditionModel
 from models.controlnet import ControlNetModel
-from diffusers import UniPCMultistepScheduler, StableDiffusionXLPipeline, AutoencoderKL
+from diffusers import UniPCMultistepScheduler, AutoencoderKL
 from transformers import PretrainedConfig
 
 
@@ -18,10 +19,17 @@ def log_validation(
     device='cuda'
 ):
     pipeline_init_kwargs = {}
+
     if args.controlnet_model_name_or_path is not None:
         print(f"loading controlnet from {args.controlnet_model_name_or_path}")
-        controlnet = ControlNetModel.from_pretrained(args.controlnet_model_name_or_path, cache_dir=args.hf_cache_dir).to(device, dtype=torch.float32)
+        controlnet = ControlNetModel()
+        if args.controlnet_model_name_or_path is not None:
+            load_safetensors(controlnet, args.controlnet_model_name_or_path)
+        else:
+            controlnet.scale = nn.Parameter(torch.tensor(0.), requires_grad=False)
+        controlnet.to(device, dtype=torch.float32)
         pipeline_init_kwargs["controlnet"] = controlnet
+
     unet = ControlNeXtUNet2DConditionModel.from_pretrained(
         args.pretrained_model_name_or_path,
         subfolder="unet",
@@ -87,7 +95,7 @@ def log_validation(
     inference_ctx = torch.autocast(device)
 
     for i, (validation_prompt, validation_image) in enumerate(zip(validation_prompts, validation_images)):
-        validation_image = Image.open(validation_image).convert("RGB")
+        validation_image = Image.open(validation_image).convert("RGB").resize((args.resolution, args.resolution))
 
         images = []
         negative_prompt = negative_prompts[i] if negative_prompts is not None else None
@@ -95,7 +103,13 @@ def log_validation(
         for _ in range(args.num_validation_images):
             with inference_ctx:
                 image = pipeline.__call__(
-                    prompt=validation_prompt, controlnet_image=validation_image, num_inference_steps=20, generator=generator, negative_prompt=negative_prompt
+                    prompt=validation_prompt,
+                    controlnet_image=validation_image,
+                    num_inference_steps=20,
+                    generator=generator,
+                    negative_prompt=negative_prompt,
+                    width=args.resolution,
+                    height=args.resolution,
                 ).images[0]
 
             images.append(image)
@@ -292,18 +306,6 @@ def import_model_class_from_model_name_or_path(
         raise ValueError(f"{model_class} is not supported.")
 
 
-def load_safetensors(model, safetensors_path, strict=True, device="cuda", load_weight_increasement=False):
-    if not load_weight_increasement:
-        state_dict = load_file(safetensors_path, device=device)
-        model.load_state_dict(state_dict, strict=strict)
-    else:
-        state_dict = load_file(safetensors_path, device=device)
-        pretrained_state_dict = model.state_dict()
-        for k in state_dict.keys():
-            state_dict[k] = state_dict[k] + pretrained_state_dict[k]
-        model.load_state_dict(state_dict, strict=False)
-
-
 def fix_clip_text_encoder_position_ids(text_encoder):
     if hasattr(text_encoder.text_model.embeddings, "position_ids"):
         text_encoder.text_model.embeddings.position_ids = text_encoder.text_model.embeddings.position_ids.long()
@@ -333,7 +335,7 @@ def convert_to_controlnext_unet_state_dict(state_dict):
         state_dict = extract_unet_state_dict(state_dict)
     if is_sdxl_state_dict(state_dict):
         state_dict = convert_sdxl_unet_state_dict_to_diffusers(state_dict)
-    state_dict = {k: v for k, v in state_dict.items() if 'to_out' in k}
+    state_dict = {k: v for k, v in state_dict.items() if 'to_out' in k and 'attn2' in k}
     return state_dict
 
 
@@ -445,13 +447,6 @@ def convert_sdxl_unet_state_dict_to_diffusers(sd):
     return convert_unet_state_dict(sd, conversion_dict)
 
 
-def convert_diffusers_unet_state_dict_to_sdxl(du_sd):
-    unet_conversion_map = make_unet_conversion_map()
-
-    conversion_map = {hf: sd for sd, hf in unet_conversion_map}
-    return convert_unet_state_dict(du_sd, conversion_map)
-
-
 def extract_unet_state_dict(state_dict):
     unet_sd = {}
     UNET_KEY_PREFIX = "model.diffusion_model."
@@ -470,15 +465,16 @@ def contains_unet_keys(state_dict):
     return any(k.startswith(UNET_KEY_PREFIX) for k in state_dict.keys())
 
 
-def convert_controlnext_unet_state_dict_to_unet_state_dict(controlnext_unet_sd, unet_sd, weight_increasement):
-    if contains_unet_keys(controlnext_unet_sd):
-        controlnext_unet_sd = extract_unet_state_dict(controlnext_unet_sd)
-    if is_sdxl_state_dict(controlnext_unet_sd):
-        controlnext_unet_sd = convert_sdxl_unet_state_dict_to_diffusers(controlnext_unet_sd)
-    if weight_increasement:
-        for k in controlnext_unet_sd.keys():
-            controlnext_unet_sd[k] = unet_sd[k] + controlnext_unet_sd[k]
-    return controlnext_unet_sd
+def load_safetensors(model, safetensors_path, strict=True, load_weight_increasement=False):
+    if not load_weight_increasement:
+        state_dict = load_file(safetensors_path)
+        model.load_state_dict(state_dict, strict=strict)
+    else:
+        state_dict = load_file(safetensors_path)
+        pretrained_state_dict = model.state_dict()
+        for k in state_dict.keys():
+            state_dict[k] = state_dict[k] + pretrained_state_dict[k]
+        model.load_state_dict(state_dict, strict=False)
 
 
 if __name__ == "__main__":

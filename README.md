@@ -28,24 +28,33 @@ If you can't load the videos, you can also directly download them from [here](Co
 
 <video width="80%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/5da1ba44-cb92-49c2-95f4-05b8e02ed6eb" muted="false"></video>
 
-<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/bc819ca7-81f3-4d63-901a-a1a4b4afc395" muted="false"></video>
+<!-- <video width="40%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/bc819ca7-81f3-4d63-901a-a1a4b4afc395" muted="false"></video>
 
-<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/adc01423-fcec-467e-a7ab-87a6e1ef5f62" muted="false"></video>
+<video width="40%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/adc01423-fcec-467e-a7ab-87a6e1ef5f62" muted="false"></video> -->
 
-<video width="80%" height='auto' style="display: block; margin: 20px auto;" controls autoplay loop src="https://www.youtube.com/watch?v=-p1QXIAZROw"  muted="false"></video>
+<table>
+<tr>
+    <td width=50% style="border: none">
+        <video width="80%" height='auto' style="display: block; margin: 0px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/bc819ca7-81f3-4d63-901a-a1a4b4afc395" muted="false"></video>
+    </td>
+    <td width=50% style="border: none">
+        <video width="80%" height='auto' style="display: block; margin: 0px auto;" controls autoplay loop src="https://github.com/dvlab-research/ControlNeXt/assets/22709028/adc01423-fcec-467e-a7ab-87a6e1ef5f62" muted="false"></video>
+    </td>
+</tr>
+</table>
 
 
 
 ### [ControlNeXt-SD1.5](ControlNeXt-SD1.5)
 
 <p align="center">
-  <img src="ControlNeXt-SD1.5/examples/deepfashion_multiview/eval_img/DreamShaper.jpg" width="70%" alt="DreamShaper">
+  <img src="ControlNeXt-SD1.5/examples/deepfashion_multiview/eval_img/DreamShaper.jpg" width="90%" alt="DreamShaper">
 </p>
 <p align="center">
-  <img src="ControlNeXt-SD1.5/examples/deepfashion_multiview/eval_img/Anythingv3_fischl.jpg" width="70%" alt="Anythingv3">
+  <img src="ControlNeXt-SD1.5/examples/deepfashion_multiview/eval_img/Anythingv3_fischl.jpg" width="90%" alt="Anythingv3">
 </p>
 <p align="center">
-  <img src="ControlNeXt-SD1.5/examples/deepfashion_caption/eval_img/chinese_style.jpg" width="70%" alt="Anythingv3">
+  <img src="ControlNeXt-SD1.5/examples/deepfashion_caption/eval_img/chinese_style.jpg" width="90%" alt="Anythingv3">
 </p>
 
 
@@ -53,8 +62,8 @@ If you can't load the videos, you can also directly download them from [here](Co
 ### [ControlNeXt-SDXL](ControlNeXt-SDXL)
 
 <p align="center">
-  <img src="ControlNeXt-SDXL/examples/vidit_depth/eval_img/DreamShaper.jpg" width="70%" alt="DreamShaper">
+  <img src="ControlNeXt-SDXL/examples/vidit_depth/eval_img/DreamShaper.jpg" width="90%" alt="DreamShaper">
 </p>
 <p align="center">
-  <img src="ControlNeXt-SDXL/examples/vidit_depth/eval_img/StableDiffusionXL_glass.jpg" width="70%" alt="Lora">
+  <img src="ControlNeXt-SDXL/examples/vidit_depth/eval_img/StableDiffusionXL_glass.jpg" width="90%" alt="Lora">
 </p>

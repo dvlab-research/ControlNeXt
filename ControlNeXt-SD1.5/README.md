@@ -10,7 +10,7 @@ Our method demonstrates the advantages listed below:
 
 - **Few trainable parameters**: only requiring **5~30M** trainable parameters (occupying 20~80 MB of memory).
 - **Fast training speed**: no sudden convergence.
-- **Efficient**: no need for additional brunch; only a lightweight module is required.
+- **Efficient**: no need for additional branch; only a lightweight module is required.
 - **Compatibility**: can serve as a **plug-and-play** lightweight module and can be combined with other LoRA weights.
 
 

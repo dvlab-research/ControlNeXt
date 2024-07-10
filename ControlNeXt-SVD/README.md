@@ -9,6 +9,7 @@ Compared to image generation, video generation poses significantly greater chall
 > Please refer to [Base model](#base-model) for more details of our used base model. \
 > Please refer to [Inference](#inference) for more details regarding installation and inference.\
 > Please refer to [Advanced Performance](#advanced-performance) for more details to achieve a better performance.\
+> Please refer to [Limitations](#limitations) for more details about the limitations of current work.
 
 # Examples
 If you can't load the videos, you can also directly download them from [here](outputs).
@@ -54,8 +55,35 @@ python run_controlnext.py \
 > --controlnet_model_name_or_path : the model path of controlnet (a light weight module) \
 > --unet_model_name_or_path : the model path of unet 
 
-> 📌 If your want to get better generated video, please refer to [Advanced Performance](#advanced-performance) for more details.
+5. Face Enhancement (Optional，Recommand for bad faces)
 
+> Currently, the model is not specifically trained for IP consistency, as there are already many mature tools available. Additionally, alternatives like Animate Anyone also adopt such post-processing techniques. 
+
+a. Clone [Face Fusion](https://github.com/facefusion/facefusion): \
+```git clone https://github.com/facefusion/facefusion```
+
+b. Ensure to enter the directory:\
+```cd facefusion```
+
+c. Install facefusion (Recommand create a new virtual environment using conda to avoid conflicts):\
+```python install.py```
+
+d. Run the command:
+```
+python run.py \
+  -s ../outputs/collected/demo.jpg \
+  -t ../outputs/collected/demo.mp4 \
+  -o ../outputs/collected/out.mp4 \
+  --headless \
+  --execution-providers cuda  \
+  --face-selector-mode one 
+```
+
+> -s: the reference image \
+> -t: the path to the original video\
+> -o: the path to store the refined video\
+> --headless: no gui need\
+> --execution-providers cuda: use cuda for acceleration (If available, most the cpu is enough)
 
 # Advanced Performance
 In this section, we will delve into additional details and my own experiences to enhance video generation. These factors are algorithm-independent and unrelated to academia, yet crucial for achieving superior results. Many closely related works incorporate these strategies.
@@ -87,6 +115,20 @@ We will release the related fine-tuning code later.
 ### Pose Generation
 
 We adopt [DWPose](https://github.com/IDEA-Research/DWPose) for the pose generation.
+
+# Limitations
+
+## IP Consistency
+
+We did not prioritize maintaining IP consistency during the development of the generation model and now rely on a helper model for face enhancement. 
+
+However, additional training can be implemented to ensure IP consistency moving forward.
+
+This also leaves a possible direction for futher improvement.
+
+## Base model
+
+The base model plays a crucial role in generating human features, particularly hands and faces. We encourage collaboration to improve the base model for enhanced human-related video generation.
 
 # TODO
 

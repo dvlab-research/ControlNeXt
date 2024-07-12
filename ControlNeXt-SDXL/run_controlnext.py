@@ -36,6 +36,7 @@ def log_validation(
         revision=args.revision,
         variant=args.variant,
         cache_dir=args.hf_cache_dir,
+        use_safetensors=True,
     )
     if args.unet_model_name_or_path is not None:
         print(f"loading unet from {args.unet_model_name_or_path}")

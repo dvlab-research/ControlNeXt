@@ -14,7 +14,12 @@ Our method demonstrates the advantages listed below:
 
 # Examples
 
-The demo examples are generated using the ControlNeXt trained on vidit_depth dataset with utilizing [DreamShaperXL](https://huggingface.co/Lykon/dreamshaper-xl-1-0) as the base model. Our method demonstrates excellent compatibility and can be applied to most other models based on sd1.5 architecture and LoRA. And you can retrain your own model for better performance.
+The demo examples are generated using the ControlNeXt trained on
+
+- (i) our vidit_depth dataset with utilizing [Stable Diffusion XL 1.0 Base](stabilityai/stable-diffusion-xl-base-1.0) as the base model.
+- (ii) our anime_canny dataset with utilizing [Neta XL V2](https://civitai.com/models/410737/neta-art-xl) as the base model.
+
+Our method demonstrates excellent compatibility and can be applied to most other models based on SDXL1.0 architecture and LoRA. And you can retrain your own model for better performance.
 
 ## BaseModel
 
@@ -34,6 +39,18 @@ Our model can be applied to various base models without the need for futher trai
   <img src="examples/vidit_depth/eval_img/DreamShaper.jpg" width="70%" alt="DreamShaper">
 </p>
 
+- [AAM XL](https://huggingface.co/Lykon/AAM_XL_AnimeMix)
+
+<p align="center">
+  <img src="examples/anime_canny/eval_img/AAM.jpg" width="70%" alt="AAM">
+</p>
+
+- [Neta XL V2](https://civitai.com/models/410737/neta-art-xl)
+
+<p align="center">
+  <img src="examples/anime_canny/eval_img/NetaXLV2.jpg" width="70%" alt="NetaXLV2">
+</p>
+
 ## LoRA
 
 Our model can also be directly combined with other publicly available LoRA weights.
@@ -41,34 +58,77 @@ Our model can also be directly combined with other publicly available LoRA weigh
 - [Glass Sculptures](https://civitai.com/models/11203/glass-sculptures?modelVersionId=177888)
 
 <p align="center">
-  <img src="examples/vidit_depth/eval_img/StableDiffusionXL_glass.jpg" width="70%" alt="StableDiffusionXL">
+  <img src="examples/vidit_depth/eval_img/StableDiffusionXL_GlassSculpturesLora.jpg" width="70%" alt="StableDiffusionXL">
 </p>
 
 # Inference
 
+## Quick Start
+
 1. Clone our repository
 2. `cd ControlNeXt-SDXL`
 3. Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlNeXt/tree/main/ControlAny-SDXL).
-4. (Optional) Download the LoRA weight, such as [Glass Sculptures](https://civitai.com/models/11203/glass-sculptures?modelVersionId=177888). And put them under `lora/`
-5. Run the scipt
+4. (Optional) Download the LoRA weight, such as [Amiya (Arknights) Fresh Art Style](https://civitai.com/models/231598/amiya-arknights-fresh-art-style-xl-trained-with-6k-images). And put them under `lora/`
+5. Run the script
 
 ```python
-CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
- --pretrained_model_name_or_path "stabilityai/stable-diffusion-xl-base-1.0" \
- --unet_model_name_or_path "pretrained/vidit_depth/unet.safetensors" \
- --controlnet_model_name_or_path "pretrained/vidit_depth/controlnet.safetensors" \
- --output_dir="examples/vidit_depth" \
- --validation_image "examples/vidit_depth/condition_0.jpg"  \
- --validation_prompt "a translucent diamond tower in the middle of a lava lake" \
- (Optional)--lora_path lora/sdxl_glass.sagetensors \
+python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix" \
+  --unet_model_name_or_path "pretrained/anime_canny/unet.safetensors" \
+  --controlnet_model_name_or_path "pretrained/anime_canny/controlnet.safetensors" \
+  --controlnet_scale 0.35 \
+  --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
+  --validation_prompt "3d style, photorealistic style, 1girl, arknights, amiya (arknights), solo, white background, upper body, looking at viewer, blush, closed mouth, low ponytail, black jacket, hooded jacket, open jacket, hood down, blue neckwear" \
+  --negative_prompt "worst quality, abstract, clumsy pose, deformed hand, fused fingers, extra digits, fewer digits, fewer fingers, extra fingers, extra arm, missing arm, extra leg, missing leg, signature, artist name, multi views, disfigured, ugly" \
+  --validation_image "examples/anime_canny/condition_0.png" \
+  --output_dir "examples/anime_canny" \
+  --load_weight_increasement \
+  --variant fp16
 ```
 
-> --pretrained_model_name_or_path : pretrained base model, we try on [Stable Diffusion XL](stabilityai/stable-diffusion-xl-base-1.0) \
+> --pretrained_model_name_or_path : pretrained base model \
+> --unet_model_name_or_path : the model path of a subset of unet parameters \
 > --controlnet_model_name_or_path : the model path of controlnet (a light weight module) \
+> --controlnet_scale : the strength of the controlnet output. For canny condition, we recommend 0.35 \
 > --lora_path : downloaded other LoRA weight \
-> --unet_model_name_or_path : the model path of a subset of unet parameters
+> --validation_image : the control condition image \
 
-> 📌 In most cases, it is enough to just load the control module by `--controlnet_model_name_or_path`. However, sometime the task is hard so it is need to select some subset of the original unet parameters to fit the task (Can be seen as another kind of LoRA). \
-> More parameters mean weaker generality, so you can make your own tradeoff. Or directly train your own models based on your own data. The training is also fast.
+```python
+python run_controlnext.py  --pretrained_model_name_or_path "stabilityai/stable-diffusion-xl-base-1.0" \
+    --unet_model_name_or_path "pretrained/vidit_depth/unet.safetensors" \
+    --controlnet_model_name_or_path "pretrained/vidit_depth/controlnet.safetensors" \
+    --controlnet_scale 1.0 \
+    --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
+    --validation_prompt "a diamond tower in the middle of a lava lake" \
+    --validation_image "examples/vidit_depth/condition_0.png" \
+    --output_dir "examples/vidit_depth" \
+    --width 1024 \
+    --height 1024 \
+    --load_weight_increasement \
+    --variant fp16
+```
+
+> --controlnet_scale : the strength of the controlnet output. For depth, we recommend 1.0 \
+
+## Image Processor
+
+We also provide a simple image processor to help you automatically convert the image to the control condition, such as canny.
+
+```python
+python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix" \
+  --unet_model_name_or_path "pretrained/anime_canny/unet.safetensors" \
+  --controlnet_model_name_or_path "pretrained/anime_canny/controlnet.safetensors" \
+  --controlnet_scale 0.35 \
+  --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
+  --validation_prompt "3d style, photorealistic style, 1girl, arknights, amiya (arknights), solo, white background, upper body, looking at viewer, blush, closed mouth, low ponytail, black jacket, hooded jacket, open jacket, hood down, blue neckwear" \
+  --negative_prompt "worst quality, abstract, clumsy pose, deformed hand, fused fingers, extra digits, fewer digits, fewer fingers, extra fingers, extra arm, missing arm, extra leg, missing leg, signature, artist name, multi views, disfigured, ugly" \
+  --validation_image "examples/anime_canny/image_0.png" \
+  --validation_image_processor "canny" \
+  --output_dir "examples/anime_canny" \
+  --load_weight_increasement \
+  --variant fp16
+```
+
+> --validation_image : the image to be processed to the control condition. \
+> --validation_image_processor : the processor to apply to the validation image. We support `canny` now.
 
 # TODO

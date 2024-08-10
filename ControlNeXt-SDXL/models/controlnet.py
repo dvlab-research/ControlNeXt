@@ -363,21 +363,21 @@ class ControlNetModel(ModelMixin, ConfigMixin):
         timestep_input_dim = block_out_channels[0]
         time_embed_dim = 256
         self.time_embedding = TimestepEmbedding(128, time_embed_dim)
-        in_channels = [128, 128, 256]
-        out_channels = [128, 256, 256]
-        groups = [4, 8, 8]
+
+        in_channels = [128, 128]
+        out_channels = [128, 256]
+        groups = [4, 8]
 
         self.embedding = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=1),
             nn.GroupNorm(2, 64),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
             nn.GroupNorm(2, 64),
             nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
             nn.GroupNorm(2, 128),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2)
         )
 
         self.down_res = nn.ModuleList()
@@ -424,7 +424,7 @@ class ControlNetModel(ModelMixin, ConfigMixin):
         self.mid_convs.append(
             nn.Conv2d(
                 in_channels=out_channels[-1],
-                out_channels=1280,
+                out_channels=320,
                 kernel_size=1,
                 stride=1,
             ))

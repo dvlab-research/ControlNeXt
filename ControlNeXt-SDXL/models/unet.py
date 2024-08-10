@@ -53,6 +53,76 @@ from diffusers.models.unets.unet_2d_blocks import (
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
+UNET_CONFIG = {
+    "_class_name": "UNet2DConditionModel",
+    "_diffusers_version": "0.19.0.dev0",
+    "act_fn": "silu",
+    "addition_embed_type": "text_time",
+    "addition_embed_type_num_heads": 64,
+    "addition_time_embed_dim": 256,
+    "attention_head_dim": [
+        5,
+        10,
+        20
+    ],
+    "block_out_channels": [
+        320,
+        640,
+        1280
+    ],
+    "center_input_sample": False,
+    "class_embed_type": None,
+    "class_embeddings_concat": False,
+    "conv_in_kernel": 3,
+    "conv_out_kernel": 3,
+    "cross_attention_dim": 2048,
+    "cross_attention_norm": None,
+    "down_block_types": [
+        "DownBlock2D",
+        "CrossAttnDownBlock2D",
+        "CrossAttnDownBlock2D"
+    ],
+    "downsample_padding": 1,
+    "dual_cross_attention": False,
+    "encoder_hid_dim": None,
+    "encoder_hid_dim_type": None,
+    "flip_sin_to_cos": True,
+    "freq_shift": 0,
+    "in_channels": 4,
+    "layers_per_block": 2,
+    "mid_block_only_cross_attention": None,
+    "mid_block_scale_factor": 1,
+    "mid_block_type": "UNetMidBlock2DCrossAttn",
+    "norm_eps": 1e-05,
+    "norm_num_groups": 32,
+    "num_attention_heads": None,
+    "num_class_embeds": None,
+    "only_cross_attention": False,
+    "out_channels": 4,
+    "projection_class_embeddings_input_dim": 2816,
+    "resnet_out_scale_factor": 1.0,
+    "resnet_skip_time_act": False,
+    "resnet_time_scale_shift": "default",
+    "sample_size": 128,
+    "time_cond_proj_dim": None,
+    "time_embedding_act_fn": None,
+    "time_embedding_dim": None,
+    "time_embedding_type": "positional",
+    "timestep_post_act": None,
+    "transformer_layers_per_block": [
+        1,
+        2,
+        10
+    ],
+    "up_block_types": [
+        "CrossAttnUpBlock2D",
+        "CrossAttnUpBlock2D",
+        "UpBlock2D"
+    ],
+    "upcast_attention": None,
+    "use_linear_projection": True
+}
+
 
 @dataclass
 class UNet2DConditionOutput(BaseOutput):
@@ -67,7 +137,7 @@ class UNet2DConditionOutput(BaseOutput):
     sample: torch.Tensor = None
 
 
-class ControlNeXtUNet2DConditionModel(
+class UNet2DConditionModel(
     ModelMixin, ConfigMixin, FromOriginalModelMixin, UNet2DConditionLoadersMixin, PeftAdapterMixin
 ):
     r"""
@@ -903,17 +973,6 @@ class ControlNeXtUNet2DConditionModel(
         if self.original_attn_processors is not None:
             self.set_attn_processor(self.original_attn_processors)
 
-    def unload_lora(self):
-        """Unloads LoRA weights."""
-        deprecate(
-            "unload_lora",
-            "0.28.0",
-            "Calling `unload_lora()` is deprecated and will be removed in a future version. Please install `peft` and then call `disable_adapters().",
-        )
-        for module in self.modules():
-            if hasattr(module, "set_lora_layer"):
-                module.set_lora_layer(None)
-
     def get_time_embed(
         self, sample: torch.Tensor, timestep: Union[torch.Tensor, float, int]
     ) -> Optional[torch.Tensor]:
@@ -1054,6 +1113,7 @@ class ControlNeXtUNet2DConditionModel(
         mid_block_additional_residual: Optional[torch.Tensor] = None,
         down_intrablock_additional_residuals: Optional[Tuple[torch.Tensor]] = None,
         encoder_attention_mask: Optional[torch.Tensor] = None,
+        controls: Optional[Dict[str, torch.Tensor]] = None,
         return_dict: bool = True,
     ) -> Union[UNet2DConditionOutput, Tuple]:
         r"""
@@ -1209,8 +1269,17 @@ class ControlNeXtUNet2DConditionModel(
             down_intrablock_additional_residuals = down_block_additional_residuals
             is_adapter = True
 
+        if controls is not None:
+            scale = controls['scale']
+            controls = controls['out'].to(sample)
+            mean_latents, std_latents = torch.mean(sample, dim=(1, 2, 3), keepdim=True), torch.std(sample, dim=(1, 2, 3), keepdim=True)
+            mean_control, std_control = torch.mean(controls, dim=(1, 2, 3), keepdim=True), torch.std(controls, dim=(1, 2, 3), keepdim=True)
+            controls = (controls - mean_control) * (std_latents / (std_control + 1e-12)) + mean_latents
+            controls = nn.functional.adaptive_avg_pool2d(controls, sample.shape[-2:])
+            sample = sample + controls * scale
+
         down_block_res_samples = (sample,)
-        for downsample_block in self.down_blocks:
+        for i, downsample_block in enumerate(self.down_blocks):
             if hasattr(downsample_block, "has_cross_attention") and downsample_block.has_cross_attention:
                 # For t2i-adapter CrossAttnDownBlock2D
                 additional_residuals = {}
@@ -1266,15 +1335,8 @@ class ControlNeXtUNet2DConditionModel(
             ):
                 sample += down_intrablock_additional_residuals.pop(0)
 
-        if mid_block_additional_residual is not None:
-            scale = mid_block_additional_residual['scale']
-            mid_block_additional_residual = mid_block_additional_residual['out']
-            mid_block_additional_residual = nn.functional.adaptive_avg_pool2d(mid_block_additional_residual, sample.shape[-2:])
-            mid_block_additional_residual = mid_block_additional_residual.to(sample)
-            mean_latents, std_latents = torch.mean(sample, dim=(1, 2, 3), keepdim=True), torch.std(sample, dim=(1, 2, 3), keepdim=True)
-            mean_control, std_control = torch.mean(mid_block_additional_residual, dim=(1, 2, 3), keepdim=True), torch.std(mid_block_additional_residual, dim=(1, 2, 3), keepdim=True)
-            mid_block_additional_residual = (mid_block_additional_residual - mean_control) * (std_latents / (std_control + 1e-12)) + mean_latents
-            sample = sample + mid_block_additional_residual * scale
+        if is_controlnet:
+            sample = sample + mid_block_additional_residual
 
         # 5. up
         for i, upsample_block in enumerate(self.up_blocks):

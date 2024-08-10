@@ -869,6 +869,7 @@ class StableDiffusionXLControlNeXtPipeline(
         prompt: Union[str, List[str]] = None,
         prompt_2: Optional[Union[str, List[str]]] = None,
         controlnet_image: Optional[PipelineImageInput] = None,
+        controlnet_scale: Optional[float] = 1.0,
         height: Optional[int] = None,
         width: Optional[int] = None,
         num_inference_steps: int = 50,
@@ -1257,19 +1258,21 @@ class StableDiffusionXLControlNeXtPipeline(
 
                 unet_additional_args = {}
                 if self.controlnet is not None:
-                    controlnet_output = self.controlnet(
+                    controls = self.controlnet(
                         controlnet_image,
                         t,
                         return_dict=False
                     )
+
+                    # This makes the effect of the controlnext much more stronger
                     # if do_classifier_free_guidance:
                     #     scale = controlnet_output['scale']
                     #     scale = scale.repeat(batch_size*2)[:, None, None, None]
                     #     scale[:batch_size] *= 0
                     #     controlnet_output['scale'] = scale
-                    controlnet_output['scale'] = controlnet_output['scale']
-                    controlnet_output['out'] = controlnet_output['out'].to(self.dtype)
-                    unet_additional_args["mid_block_additional_residual"] = controlnet_output
+
+                    controls['scale'] *= controlnet_scale
+                    unet_additional_args["controls"] = controls
 
                 noise_pred = self.unet(
                     latent_model_input,

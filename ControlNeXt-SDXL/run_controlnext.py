@@ -3,69 +3,33 @@ import torch
 import cv2
 import numpy as np
 import argparse
-import gc
 import torch.nn as nn
 from PIL import Image
 from safetensors.torch import load_file
-from models.pipeline_controlnext import StableDiffusionXLControlNeXtPipeline
-from models.unet import ControlNeXtUNet2DConditionModel
+from pipeline.pipeline_controlnext import StableDiffusionXLControlNeXtPipeline
+from models.unet import UNet2DConditionModel, UNET_CONFIG
 from models.controlnet import ControlNetModel
 from diffusers import UniPCMultistepScheduler, AutoencoderKL
-from transformers import PretrainedConfig
+from utils import utils, preprocess
 
 
 def log_validation(
     args,
     device='cuda'
 ):
-    pipeline_init_kwargs = {}
-
-    if args.controlnet_model_name_or_path is not None:
-        print(f"loading controlnet from {args.controlnet_model_name_or_path}")
-        controlnet = ControlNetModel()
-        if args.controlnet_model_name_or_path is not None:
-            load_safetensors(controlnet, args.controlnet_model_name_or_path)
-        else:
-            controlnet.scale = nn.Parameter(torch.tensor(0.), requires_grad=False)
-        controlnet.to(device, dtype=torch.float32)
-        pipeline_init_kwargs["controlnet"] = controlnet
-
-    unet = ControlNeXtUNet2DConditionModel.from_pretrained(
+    pipeline = get_pipeline(
         args.pretrained_model_name_or_path,
-        subfolder="unet",
+        args.unet_model_name_or_path,
+        args.controlnet_model_name_or_path,
+        vae_model_name_or_path=args.vae_model_name_or_path,
+        lora_path=args.lora_path,
+        load_weight_increasement=args.load_weight_increasement,
+        enable_xformers_memory_efficient_attention=args.enable_xformers_memory_efficient_attention,
         revision=args.revision,
         variant=args.variant,
-        cache_dir=args.hf_cache_dir,
-        use_safetensors=True,
+        hf_cache_dir=args.hf_cache_dir,
+        device=device,
     )
-    if args.unet_model_name_or_path is not None:
-        print(f"loading unet from {args.unet_model_name_or_path}")
-        controlnext_unet_sd = load_file(args.unet_model_name_or_path)
-        if args.load_weight_increasement:
-            unet_sd = load_controlnext_unet_state_dict(unet.state_dict(), controlnext_unet_sd)
-        else:
-            unet_sd = convert_to_controlnext_unet_state_dict(controlnext_unet_sd)
-        unet.load_state_dict(unet_sd, strict=False)
-    if args.vae_model_name_or_path is not None:
-        print(f"loading vae from {args.vae_model_name_or_path}")
-        vae = AutoencoderKL.from_pretrained(args.vae_model_name_or_path, cache_dir=args.hf_cache_dir).to(device)
-        pipeline_init_kwargs["vae"] = vae
-    print(f"loading pipeline from {args.pretrained_model_name_or_path}")
-    pipeline: StableDiffusionXLControlNeXtPipeline = StableDiffusionXLControlNeXtPipeline.from_pretrained(
-        args.pretrained_model_name_or_path,
-        unet=unet,
-        revision=args.revision,
-        variant=args.variant,
-        cache_dir=args.hf_cache_dir,
-        **pipeline_init_kwargs,
-    ).to(device, dtype=torch.float16)
-    pipeline.scheduler = UniPCMultistepScheduler.from_config(pipeline.scheduler.config)
-    pipeline.set_progress_bar_config()
-
-    if args.lora_path is not None:
-        pipeline.load_lora_weights(args.lora_path)
-    if args.enable_xformers_memory_efficient_attention:
-        pipeline.enable_xformers_memory_efficient_attention()
 
     if args.seed is None:
         generator = None
@@ -92,25 +56,33 @@ def log_validation(
     else:
         negative_prompts = None
 
+    extractor = preprocess.get_extractor(args.validation_image_processor)
+
     image_logs = []
     inference_ctx = torch.autocast(device)
 
     for i, (validation_prompt, validation_image) in enumerate(zip(validation_prompts, validation_images)):
-        validation_image = Image.open(validation_image).convert("RGB").resize((args.resolution, args.resolution))
+        validation_image = Image.open(validation_image).convert("RGB")
+        if extractor is not None:
+            validation_image = extractor(validation_image)
 
         images = []
         negative_prompt = negative_prompts[i] if negative_prompts is not None else None
+        width = args.width if args.width is not None else validation_image.width
+        height = args.height if args.height is not None else validation_image.height
+        validation_image = validation_image.resize((width, height))
 
         for _ in range(args.num_validation_images):
             with inference_ctx:
-                image = pipeline.__call__(
+                image = pipeline(
                     prompt=validation_prompt,
                     controlnet_image=validation_image,
-                    num_inference_steps=20,
+                    controlnet_scale=args.controlnet_scale,
+                    num_inference_steps=args.num_inference_steps,
                     generator=generator,
                     negative_prompt=negative_prompt,
-                    width=args.resolution,
-                    height=args.resolution,
+                    width=width,
+                    height=height,
                 ).images[0]
 
             images.append(image)
@@ -133,12 +105,123 @@ def log_validation(
             formatted_images.append(np.asarray(image))
         formatted_images = np.concatenate(formatted_images, 1)
 
+        for j, validation_image in enumerate(images):
+            file_path = os.path.join(save_dir_path, "image_{}-{}.png".format(i, j))
+            validation_image = np.asarray(validation_image)
+            validation_image = cv2.cvtColor(validation_image, cv2.COLOR_BGR2RGB)
+            cv2.imwrite(file_path, validation_image)
+            print("Save images to:", file_path)
+
         file_path = os.path.join(save_dir_path, "image_{}.png".format(i))
         formatted_images = cv2.cvtColor(formatted_images, cv2.COLOR_BGR2RGB)
         print("Save images to:", file_path)
         cv2.imwrite(file_path, formatted_images)
 
     return image_logs
+
+
+def get_pipeline(
+    pretrained_model_name_or_path,
+    unet_model_name_or_path,
+    controlnet_model_name_or_path,
+    vae_model_name_or_path=None,
+    lora_path=None,
+    load_weight_increasement=False,
+    enable_xformers_memory_efficient_attention=False,
+    revision=None,
+    variant=None,
+    hf_cache_dir=None,
+    device=None,
+):
+    pipeline_init_kwargs = {}
+
+    if controlnet_model_name_or_path is not None:
+        print(f"loading controlnet from {controlnet_model_name_or_path}")
+        controlnet = ControlNetModel()
+        if controlnet_model_name_or_path is not None:
+            utils.load_safetensors(controlnet, controlnet_model_name_or_path)
+        else:
+            controlnet.scale = nn.Parameter(torch.tensor(0.), requires_grad=False)
+        controlnet.to(device, dtype=torch.float32)
+        pipeline_init_kwargs["controlnet"] = controlnet
+
+        utils.log_model_info(controlnet, "controlnext")
+    else:
+        print(f"no controlnet")
+
+    print(f"loading unet from {pretrained_model_name_or_path}")
+    if os.path.isfile(pretrained_model_name_or_path) and pretrained_model_name_or_path.endswith(".safetensors"):
+        # load unet from safetensors checkpoint
+        unet_sd = load_file(args.pretrained_model_name_or_path)
+        unet_sd = utils.extract_unet_state_dict(unet_sd)
+        unet_sd = utils.convert_sdxl_unet_state_dict_to_diffusers(unet_sd)
+        unet = UNet2DConditionModel.from_config(UNET_CONFIG)
+        unet.load_state_dict(unet_sd, strict=True)
+        if variant == "fp16":
+            unet = unet.to(dtype=torch.float16)
+    else:
+        unet = UNet2DConditionModel.from_pretrained(
+            pretrained_model_name_or_path,
+            revision=revision,
+            variant=variant,
+            subfolder="unet",
+            # use_safetensors=True,
+            cache_dir=hf_cache_dir,
+            torch_dtype=torch.float16 if variant == "fp16" else None,
+        )
+    utils.log_model_info(unet, "unet")
+
+    if unet_model_name_or_path is not None:
+        print(f"loading controlnext unet from {unet_model_name_or_path}")
+        controlnext_unet_sd = load_file(unet_model_name_or_path)
+        controlnext_unet_sd = utils.convert_to_controlnext_unet_state_dict(controlnext_unet_sd)
+        unet_sd = unet.state_dict()
+        assert all(
+            k in unet_sd for k in controlnext_unet_sd), \
+            f"controlnext unet state dict is not compatible with unet state dict, missing keys: {set(controlnext_unet_sd.keys()) - set(unet_sd.keys())}, extra keys: {set(unet_sd.keys()) - set(controlnext_unet_sd.keys())}"
+        if load_weight_increasement:
+            for k in controlnext_unet_sd.keys():
+                controlnext_unet_sd[k] = controlnext_unet_sd[k] + unet_sd[k]
+        unet.load_state_dict(controlnext_unet_sd, strict=False)
+        utils.log_model_info(controlnext_unet_sd, "controlnext unet")
+
+    pipeline_init_kwargs["unet"] = unet
+
+    if vae_model_name_or_path is not None:
+        print(f"loading vae from {vae_model_name_or_path}")
+        vae = AutoencoderKL.from_pretrained(vae_model_name_or_path, cache_dir=hf_cache_dir, torch_dtype=torch.float16).to(device)
+        pipeline_init_kwargs["vae"] = vae
+
+    print(f"loading pipeline from {pretrained_model_name_or_path}")
+    if os.path.isfile(pretrained_model_name_or_path):
+        pipeline: StableDiffusionXLControlNeXtPipeline = StableDiffusionXLControlNeXtPipeline.from_single_file(
+            pretrained_model_name_or_path,
+            use_safetensors=True,
+            local_files_only=True,
+            cache_dir=hf_cache_dir,
+            **pipeline_init_kwargs,
+        )
+
+    else:
+        pipeline: StableDiffusionXLControlNeXtPipeline = StableDiffusionXLControlNeXtPipeline.from_pretrained(
+            pretrained_model_name_or_path,
+            revision=revision,
+            use_safetensors=True,
+            variant=variant,
+            cache_dir=hf_cache_dir,
+            **pipeline_init_kwargs,
+        )
+
+    pipeline.scheduler = UniPCMultistepScheduler.from_config(pipeline.scheduler.config)
+    pipeline.set_progress_bar_config()
+    pipeline = pipeline.to(device, dtype=torch.float16)
+
+    if lora_path is not None:
+        pipeline.load_lora_weights(lora_path)
+    if enable_xformers_memory_efficient_attention:
+        pipeline.enable_xformers_memory_efficient_attention()
+
+    return pipeline
 
 
 def parse_args(input_args=None):
@@ -196,12 +279,21 @@ def parse_args(input_args=None):
     )
     parser.add_argument("--seed", type=int, default=None, help="A seed for reproducible training.")
     parser.add_argument(
-        "--resolution",
+        "--width",
         type=int,
-        default=512,
+        default=None,
         help=(
-            "The resolution for input images, all the images in the train/validation dataset will be resized to this"
-            " resolution"
+            "The width for input images, all the images in the train/validation dataset will be resized to this"
+            " width"
+        ),
+    )
+    parser.add_argument(
+        "--height",
+        type=int,
+        default=None,
+        help=(
+            "The height for input images, all the images in the train/validation dataset will be resized to this"
+            " height"
         ),
     )
     parser.add_argument(
@@ -242,10 +334,29 @@ def parse_args(input_args=None):
         ),
     )
     parser.add_argument(
+        "--validation_image_processor",
+        type=str,
+        default=None,
+        choices=["canny"],
+        help="The type of image processor to use for the validation images.",
+    )
+    parser.add_argument(
         "--num_validation_images",
         type=int,
         default=4,
         help="Number of images to be generated for each `--validation_image`, `--validation_prompt` pair",
+    )
+    parser.add_argument(
+        "--num_inference_steps",
+        type=int,
+        default=20,
+        help="Number of inference steps for the diffusion model",
+    )
+    parser.add_argument(
+        "--controlnet_scale",
+        type=float,
+        default=1.0,
+        help="Scale of the controlnet",
     )
     parser.add_argument(
         "--load_weight_increasement",
@@ -282,200 +393,16 @@ def parse_args(input_args=None):
             " or the same number of `--validation_prompt`s and `--validation_image`s"
         )
 
-    if args.resolution % 8 != 0:
+    if args.width is not None and args.width % 8 != 0:
         raise ValueError(
-            "`--resolution` must be divisible by 8 for consistently sized encoded images between the VAE and the controlnet encoder."
+            "`--width` must be divisible by 8 for consistently sized encoded images between the VAE and the controlnet encoder."
+        )
+    if args.height is not None and args.height % 8 != 0:
+        raise ValueError(
+            "`--height` must be divisible by 8 for consistently sized encoded images between the VAE and the controlnet encoder."
         )
 
     return args
-
-
-def import_model_class_from_model_name_or_path(
-    pretrained_model_name_or_path: str, revision: str, subfolder: str = None
-):
-    text_encoder_config = PretrainedConfig.from_pretrained(
-        pretrained_model_name_or_path, revision=revision, subfolder=subfolder
-    )
-    model_class = text_encoder_config.architectures[0]
-    if model_class == "CLIPTextModel":
-        from transformers import CLIPTextModel
-        return CLIPTextModel
-    elif model_class == "CLIPTextModelWithProjection":
-        from transformers import CLIPTextModelWithProjection
-        return CLIPTextModelWithProjection
-    else:
-        raise ValueError(f"{model_class} is not supported.")
-
-
-def fix_clip_text_encoder_position_ids(text_encoder):
-    if hasattr(text_encoder.text_model.embeddings, "position_ids"):
-        text_encoder.text_model.embeddings.position_ids = text_encoder.text_model.embeddings.position_ids.long()
-
-
-def convert_unet_to_controlnext_unet(orig_unet):
-    print(f"converting unet to controlnext unet")
-    unet = ControlNeXtUNet2DConditionModel.from_config(orig_unet.config)
-    unet.load_state_dict(orig_unet.state_dict())
-    unet = unet.to(orig_unet.device, dtype=orig_unet.dtype)
-    del orig_unet
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-    gc.collect()
-    return unet
-
-
-def load_controlnext_unet_state_dict(unet_sd, controlnext_unet_sd):
-    assert all(k in unet_sd for k in controlnext_unet_sd), "controlnext unet state dict is not compatible with unet state dict"
-    for k in controlnext_unet_sd.keys():
-        unet_sd[k] = controlnext_unet_sd[k]
-    return unet_sd
-
-
-def convert_to_controlnext_unet_state_dict(state_dict):
-    if contains_unet_keys(state_dict):
-        state_dict = extract_unet_state_dict(state_dict)
-    if is_sdxl_state_dict(state_dict):
-        state_dict = convert_sdxl_unet_state_dict_to_diffusers(state_dict)
-    state_dict = {k: v for k, v in state_dict.items() if 'to_out' in k and 'attn2' in k}
-    return state_dict
-
-
-def make_unet_conversion_map():
-    unet_conversion_map_layer = []
-
-    for i in range(3):  # num_blocks is 3 in sdxl
-        # loop over downblocks/upblocks
-        for j in range(2):
-            # loop over resnets/attentions for downblocks
-            hf_down_res_prefix = f"down_blocks.{i}.resnets.{j}."
-            sd_down_res_prefix = f"input_blocks.{3*i + j + 1}.0."
-            unet_conversion_map_layer.append((sd_down_res_prefix, hf_down_res_prefix))
-
-            if i < 3:
-                # no attention layers in down_blocks.3
-                hf_down_atn_prefix = f"down_blocks.{i}.attentions.{j}."
-                sd_down_atn_prefix = f"input_blocks.{3*i + j + 1}.1."
-                unet_conversion_map_layer.append((sd_down_atn_prefix, hf_down_atn_prefix))
-
-        for j in range(3):
-            # loop over resnets/attentions for upblocks
-            hf_up_res_prefix = f"up_blocks.{i}.resnets.{j}."
-            sd_up_res_prefix = f"output_blocks.{3*i + j}.0."
-            unet_conversion_map_layer.append((sd_up_res_prefix, hf_up_res_prefix))
-
-            # if i > 0: commentout for sdxl
-            # no attention layers in up_blocks.0
-            hf_up_atn_prefix = f"up_blocks.{i}.attentions.{j}."
-            sd_up_atn_prefix = f"output_blocks.{3*i + j}.1."
-            unet_conversion_map_layer.append((sd_up_atn_prefix, hf_up_atn_prefix))
-
-        if i < 3:
-            # no downsample in down_blocks.3
-            hf_downsample_prefix = f"down_blocks.{i}.downsamplers.0.conv."
-            sd_downsample_prefix = f"input_blocks.{3*(i+1)}.0.op."
-            unet_conversion_map_layer.append((sd_downsample_prefix, hf_downsample_prefix))
-
-            # no upsample in up_blocks.3
-            hf_upsample_prefix = f"up_blocks.{i}.upsamplers.0."
-            sd_upsample_prefix = f"output_blocks.{3*i + 2}.{2}."  # change for sdxl
-            unet_conversion_map_layer.append((sd_upsample_prefix, hf_upsample_prefix))
-
-    hf_mid_atn_prefix = "mid_block.attentions.0."
-    sd_mid_atn_prefix = "middle_block.1."
-    unet_conversion_map_layer.append((sd_mid_atn_prefix, hf_mid_atn_prefix))
-
-    for j in range(2):
-        hf_mid_res_prefix = f"mid_block.resnets.{j}."
-        sd_mid_res_prefix = f"middle_block.{2*j}."
-        unet_conversion_map_layer.append((sd_mid_res_prefix, hf_mid_res_prefix))
-
-    unet_conversion_map_resnet = [
-        # (stable-diffusion, HF Diffusers)
-        ("in_layers.0.", "norm1."),
-        ("in_layers.2.", "conv1."),
-        ("out_layers.0.", "norm2."),
-        ("out_layers.3.", "conv2."),
-        ("emb_layers.1.", "time_emb_proj."),
-        ("skip_connection.", "conv_shortcut."),
-    ]
-
-    unet_conversion_map = []
-    for sd, hf in unet_conversion_map_layer:
-        if "resnets" in hf:
-            for sd_res, hf_res in unet_conversion_map_resnet:
-                unet_conversion_map.append((sd + sd_res, hf + hf_res))
-        else:
-            unet_conversion_map.append((sd, hf))
-
-    for j in range(2):
-        hf_time_embed_prefix = f"time_embedding.linear_{j+1}."
-        sd_time_embed_prefix = f"time_embed.{j*2}."
-        unet_conversion_map.append((sd_time_embed_prefix, hf_time_embed_prefix))
-
-    for j in range(2):
-        hf_label_embed_prefix = f"add_embedding.linear_{j+1}."
-        sd_label_embed_prefix = f"label_emb.0.{j*2}."
-        unet_conversion_map.append((sd_label_embed_prefix, hf_label_embed_prefix))
-
-    unet_conversion_map.append(("input_blocks.0.0.", "conv_in."))
-    unet_conversion_map.append(("out.0.", "conv_norm_out."))
-    unet_conversion_map.append(("out.2.", "conv_out."))
-
-    return unet_conversion_map
-
-
-def convert_unet_state_dict(src_sd, conversion_map):
-    converted_sd = {}
-    for src_key, value in src_sd.items():
-        src_key_fragments = src_key.split(".")[:-1]  # remove weight/bias
-        while len(src_key_fragments) > 0:
-            src_key_prefix = ".".join(src_key_fragments) + "."
-            if src_key_prefix in conversion_map:
-                converted_prefix = conversion_map[src_key_prefix]
-                converted_key = converted_prefix + src_key[len(src_key_prefix):]
-                converted_sd[converted_key] = value
-                break
-            src_key_fragments.pop(-1)
-        assert len(src_key_fragments) > 0, f"key {src_key} not found in conversion map"
-
-    return converted_sd
-
-
-def convert_sdxl_unet_state_dict_to_diffusers(sd):
-    unet_conversion_map = make_unet_conversion_map()
-
-    conversion_dict = {sd: hf for sd, hf in unet_conversion_map}
-    return convert_unet_state_dict(sd, conversion_dict)
-
-
-def extract_unet_state_dict(state_dict):
-    unet_sd = {}
-    UNET_KEY_PREFIX = "model.diffusion_model."
-    for k, v in state_dict.items():
-        if k.startswith(UNET_KEY_PREFIX):
-            unet_sd[k[len(UNET_KEY_PREFIX):]] = v
-    return unet_sd
-
-
-def is_sdxl_state_dict(state_dict):
-    return any(key.startswith('input_blocks') for key in state_dict.keys())
-
-
-def contains_unet_keys(state_dict):
-    UNET_KEY_PREFIX = "model.diffusion_model."
-    return any(k.startswith(UNET_KEY_PREFIX) for k in state_dict.keys())
-
-
-def load_safetensors(model, safetensors_path, strict=True, load_weight_increasement=False):
-    if not load_weight_increasement:
-        state_dict = load_file(safetensors_path)
-        model.load_state_dict(state_dict, strict=strict)
-    else:
-        state_dict = load_file(safetensors_path)
-        pretrained_state_dict = model.state_dict()
-        for k in state_dict.keys():
-            state_dict[k] = state_dict[k] + pretrained_state_dict[k]
-        model.load_state_dict(state_dict, strict=False)
 
 
 if __name__ == "__main__":

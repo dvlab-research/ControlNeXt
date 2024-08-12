@@ -33,12 +33,6 @@ Our model can be applied to various base models without the need for futher trai
   <img src="examples/vidit_depth/eval_img/StableDiffusionXL.jpg" width="70%" alt="StableDiffusionXL">
 </p>
 
-- [DreamShaperXL](https://huggingface.co/Lykon/dreamshaper-xl-1-0)
-
-<p align="center">
-  <img src="examples/vidit_depth/eval_img/DreamShaper.jpg" width="70%" alt="DreamShaper">
-</p>
-
 - [AAM XL](https://huggingface.co/Lykon/AAM_XL_AnimeMix)
 
 <p align="center">

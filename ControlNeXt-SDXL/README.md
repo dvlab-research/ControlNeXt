@@ -21,6 +21,13 @@ The demo examples are generated using the ControlNeXt trained on
 
 Our method demonstrates excellent compatibility and can be applied to most other models based on SDXL1.0 architecture and LoRA. And you can retrain your own model for better performance.
 
+<p align="center">
+  <img src="examples/demo/demo1.jpg" width="70%" alt="demo1">
+  <img src="examples/demo/demo2.jpg" width="70%" alt="demo2">
+  <img src="examples/demo/demo3.jpg" width="70%" alt="demo3">
+  <img src="examples/demo/demo5.jpg" width="70%" alt="demo5">
+</p>
+
 ## BaseModel
 
 Our model can be applied to various base models without the need for futher training as a plug-and-play module.

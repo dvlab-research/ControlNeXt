@@ -44,15 +44,37 @@
 # clip.write_gif(gif_path, fps=14, program='ffmpeg', opt="nq", fuzz=1, )
 
 
-import imageio 
-import pygifsicle 
- 
-# Read the video file into memory 
-frames = imageio.v2.imread('/home/llm/bhpeng/github/ControlNeXt/ControlNeXt-SVD/outputs/chair/chair.mp4') 
- 
-# Convert the frames to GIF format 
-gif_image = pygifsicle.optimize(frames) 
- 
-# Save the GIF image to a file 
-with open('/home/llm/bhpeng/github/ControlNeXt/ControlNeXt-SVD/outputs/chair/chair.gif', 'wb') as f: 
-    f.write(gif_image) 
+from PIL import Image
+import os
+
+def compress_image(input_path, output_path, quality=85):
+    """
+    压缩图片，同时尽可能保留质量。
+    
+    :param input_path: 原始图片路径
+    :param output_path: 压缩后图片保存路径
+    :param quality: 压缩质量，取值范围是 0 到 100，100 代表最高质量
+    """
+    # 打开图片
+    with Image.open(input_path) as img:
+        # 确保图片是 RGB 模式
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+        
+        # 保存压缩后的图片
+        img.save(output_path, "JPEG", quality=quality, optimize=True)
+
+
+img_paths = [
+    'ControlNeXt-SDXL/examples/demo/demo1.png',
+    'ControlNeXt-SDXL/examples/demo/demo3.png',
+    'ControlNeXt-SDXL/examples/demo/demo5.png'
+]
+quality = 50
+
+for src_path in img_paths:
+    dst_path = src_path
+    src_path = os.path.join(os.path.split(src_path)[0], 'src_'+os.path.split(src_path)[1])
+    os.rename(dst_path, src_path)
+    dst_path = '.'.join(dst_path.split('.')[:-1])+'.jpg'
+    compress_image(src_path, dst_path, quality=quality)

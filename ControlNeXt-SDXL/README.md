@@ -75,6 +75,7 @@ pip install -r requirements.txt
 Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlNeXt/tree/main/ControlAny-SDXL). You can download manually or use the following commands:
 
 ```bash
+python -m pip install "huggingface_hub[cli]"
 mkdir pretrained
 huggingface-cli download Pbihao/ControlNeXt ControlAny-SDXL/anime_canny/unet.safetensors ControlAny-SDXL/anime_canny/controlnet.safetensors --local-dir .
 mv pretrained/ControlAny-SDXL/* pretrained/

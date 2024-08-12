@@ -1,3 +1,5 @@
+import math
+from typing import Tuple, Union, Optional
 from safetensors.torch import load_file
 from transformers import PretrainedConfig
 
@@ -193,3 +195,31 @@ def log_model_info(model, name):
         f"  dtype: {sd[next(iter(sd))].dtype}",
         sep='\n'
     )
+
+
+def around_reso(img_w, img_h, reso: Union[Tuple[int, int], int], divisible: Optional[int] = None, max_width=None, max_height=None) -> Tuple[int, int]:
+    r"""
+    w*h = reso*reso
+    w/h = img_w/img_h
+    => w = img_ar*h
+    => img_ar*h^2 = reso
+    => h = sqrt(reso / img_ar)
+    """
+    reso = reso if isinstance(reso, tuple) else (reso, reso)
+    divisible = divisible or 1
+    if img_w * img_h <= reso[0] * reso[1] and (not max_width or img_w <= max_width) and (not max_height or img_h <= max_height) and img_w % divisible == 0 and img_h % divisible == 0:
+        return (img_w, img_h)
+    img_ar = img_w / img_h
+    around_h = math.sqrt(reso[0]*reso[1] / img_ar)
+    around_w = img_ar * around_h // divisible * divisible
+    if max_width and around_w > max_width:
+        around_h = around_h * max_width // around_w
+        around_w = max_width
+    elif max_height and around_h > max_height:
+        around_w = around_w * max_height // around_h
+        around_h = max_height
+    around_h = min(around_h, max_height) if max_height else around_h
+    around_w = min(around_w, max_width) if max_width else around_w
+    around_h = int(around_h // divisible * divisible)
+    around_w = int(around_w // divisible * divisible)
+    return (around_w, around_h)

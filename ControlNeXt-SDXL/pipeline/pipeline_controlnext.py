@@ -1202,7 +1202,7 @@ class StableDiffusionXLControlNeXtPipeline(
                 self.do_classifier_free_guidance,
             )
 
-        if controlnet_image is not None:
+        if controlnet_image is not None and self.controlnet is not None:
             controlnet_image = self.prepare_image(
                 controlnet_image,
                 width,
@@ -1210,7 +1210,7 @@ class StableDiffusionXLControlNeXtPipeline(
                 batch_size,
                 num_images_per_prompt,
                 device,
-                latents.dtype,
+                self.controlnet.dtype,
                 do_classifier_free_guidance=self.do_classifier_free_guidance,
             )
             # 8. Denoising loop

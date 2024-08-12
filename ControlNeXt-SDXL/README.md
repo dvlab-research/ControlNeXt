@@ -59,11 +59,36 @@ Our model can also be directly combined with other publicly available LoRA weigh
 
 ## Quick Start
 
-1. Clone our repository
-2. `cd ControlNeXt-SDXL`
-3. Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlNeXt/tree/main/ControlAny-SDXL).
-4. (Optional) Download the LoRA weight, such as [Amiya (Arknights) Fresh Art Style](https://civitai.com/models/231598/amiya-arknights-fresh-art-style-xl-trained-with-6k-images). And put them under `lora/`
-5. Run the script
+Clone the repository:
+
+```bash
+git clone https://github.com/dvlab-research/ControlNeXt
+cd ControlNeXt/ControlNeXt-SDXL
+```
+
+Install the required packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlNeXt/tree/main/ControlAny-SDXL). You can download manually or use the following commands:
+
+```bash
+mkdir pretrained
+huggingface-cli download Pbihao/ControlNeXt ControlAny-SDXL/anime_canny/unet.safetensors ControlAny-SDXL/anime_canny/controlnet.safetensors --local-dir .
+mv pretrained/ControlAny-SDXL/* pretrained/
+```
+
+(Optional) Download the LoRA weight, such as [Amiya (Arknights) Fresh Art Style](https://civitai.com/models/231598/amiya-arknights-fresh-art-style-xl-trained-with-6k-images). And put them under `lora/`.
+
+Run the example:
+
+```bash
+bash examples/anime_canny/script.sh
+```
+
+## Usage
 
 ```python
 python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix" \

@@ -165,7 +165,7 @@ def get_pipeline(
             revision=revision,
             variant=variant,
             subfolder="unet",
-            # use_safetensors=True,
+            use_safetensors=True,
             cache_dir=hf_cache_dir,
             torch_dtype=torch.float16 if variant == "fp16" else None,
         )
@@ -196,12 +196,11 @@ def get_pipeline(
     if os.path.isfile(pretrained_model_name_or_path):
         pipeline: StableDiffusionXLControlNeXtPipeline = StableDiffusionXLControlNeXtPipeline.from_single_file(
             pretrained_model_name_or_path,
-            use_safetensors=True,
+            use_safetensors=pretrained_model_name_or_path.endswith(".safetensors"),
             local_files_only=True,
             cache_dir=hf_cache_dir,
             **pipeline_init_kwargs,
         )
-
     else:
         pipeline: StableDiffusionXLControlNeXtPipeline = StableDiffusionXLControlNeXtPipeline.from_pretrained(
             pretrained_model_name_or_path,

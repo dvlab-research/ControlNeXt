@@ -58,12 +58,12 @@ For the v2 version, we adopt the below operations to improve the performance:
 4. Download the DWPose weights including the [dw-ll_ucoco_384](https://drive.google.com/file/d/12L8E2oAgZy4VACGSK9RaZBZrfgx7VTA2/view?usp=sharing) and [yolox_l](https://drive.google.com/file/d/1w9pXC8tT0p9ndMN-CArp1__b2GbzewWI/view?usp=sharing) into `pretrained/DWPose`. For more details, please refer to [DWPose](https://github.com/IDEA-Research/DWPose):
 ```
 ├───pretrained
-│   └───DWPose
-│     │───dw-ll_ucoco_384.onnx
-│     └───yolox_l.onnx
-│
-├───unet.bin
-└───controlnet.bin
+    └───DWPose
+    |   │───dw-ll_ucoco_384.onnx
+    |   └───yolox_l.onnx
+    |
+    ├───unet.bin
+    └───controlnet.bin
 ```
 5. Run the scipt
 
@@ -89,7 +89,7 @@ CUDA_VISIBLE_DEVICES=0 python run_controlnext.py \
 > --unet_model_name_or_path : the model path of unet \
 > --ref_image_path: the path to the reference image \
 > --overlap: The length of the overlapped frames for long-frame video generation. \
-> --sample_stride: The length of the sampled stride for the conditional controls.
+> --sample_stride: The length of the sampled stride for the conditional controls. You can set it to `1` to make more smooth generation wihile requires more computation.
 
 5. Face Enhancement (Optional，Recommand for bad faces)
 

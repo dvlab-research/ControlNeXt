@@ -3,7 +3,7 @@
 
 
 
-##   [📝 Project Page](https://pbihao.github.io/projects/controlnext/index.html)  |  [📚 Paper](https://pbihao.github.io/projects/controlnext/index.html)
+##   [📝 Project Page](https://pbihao.github.io/projects/controlnext/index.html)  |  [📚 Paper](https://arxiv.org/abs/2408.06070)
 
 
 **ControlNeXt** is our official implementation for controllable generation, supporting both images and videos while incorporating diverse forms of control information. In this project, we propose a new method that reduces trainable parameters by up to 90% compared with ControlNet, achieving faster convergence and outstanding efficiency. This method can be directly combined with other LoRA techniques to alter style and ensure more stable generation. Please refer to the examples for more details.

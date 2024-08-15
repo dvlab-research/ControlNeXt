@@ -10,6 +10,9 @@
 
 > This project is still undergoing iterative development. The code and model may be updated at any time. More information will be provided later.
 
+We share more experimences in [Issue](https://github.com/dvlab-research/ControlNeXt/issues/14#issuecomment-2290450333).
+We spent a lot of time to find these tips, now share all with all of you. May there will help you!
+
 # Model Zoo
 
 - **ControlNeXt-SDXL** [ [Link](ControlNeXt-SDXL) ] : Controllable image generation. Our model is built upon [Stable Diffusion XL ](stabilityai/stable-diffusion-xl-base-1.0). Fewer trainable parameters, faster convergence, improved efficiency, and can be integrated with LoRA.

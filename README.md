@@ -10,6 +10,7 @@
 
 > This project is still undergoing iterative development. The code and model may be updated at any time. More information will be provided later.
 
+# Experiences
 We share more training experiences in the [Issue](https://github.com/dvlab-research/ControlNeXt/issues/14#issuecomment-2290450333).
 We spent a lot of time to find these. Now share with all of you. May these will help you!
 

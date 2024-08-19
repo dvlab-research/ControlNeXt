@@ -1,5 +1,7 @@
 # 🌀 ControlNeXt-SD1.5
 
+`Please refer to SDXL and SVD for our newly updated version !`
+
 This is our implementation of ControlNeXt based on [Stable Diffusion 1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5).
 
 > Please refer to [Examples](#examples) for further intuitive details.\

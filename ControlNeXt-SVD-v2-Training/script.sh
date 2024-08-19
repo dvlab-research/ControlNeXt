@@ -13,7 +13,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 accelerate  launch --config_file ./deepspee
  --height=1024 \
  --lr_warmup_steps 500 \
  --sample_n_frames 14 \
- --interval_frame 5 \
+ --interval_frame 3 \
  --learning_rate=1e-5 \
  --per_gpu_batch_size=1 \
  --num_train_epochs=6000 \

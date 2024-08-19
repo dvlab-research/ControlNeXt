@@ -1,0 +1,7 @@
+[
+    {
+        "video_path": "PATH_TO_THE_SOURCE_VIDEO",
+        "guide_path": "PATH_TO_THE_CORESEPONDING_POSE_VIDEO",
+        "meta_info": "PATH_TO_THE_JSON_FILE_RECORD_THE_DETAILED_DETECTION_RESULTS(we give an example in meta_info/1.json)"
+    }
+]

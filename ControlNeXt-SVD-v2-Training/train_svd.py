@@ -1292,7 +1292,7 @@ def main():
                     model_pred = unet(
                         inp_noisy_latents, timesteps, encoder_hidden_states,
                         added_time_ids=added_time_ids,
-                        mid_block_additional_residual=controlnext_output,
+                        conditional_controls=controlnext_output,
                         ).sample
                     
 

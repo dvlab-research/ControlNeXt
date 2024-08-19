@@ -460,7 +460,7 @@ class UNetSpatioTemporalConditionControlNeXtModel(ModelMixin, ConfigMixin, UNet2
                 mean_control, std_control = torch.mean(conditional_controls, dim=(1, 2, 3), keepdim=True), torch.std(conditional_controls, dim=(1, 2, 3), keepdim=True)
                 conditional_controls = (conditional_controls - mean_control) * (std_latents / (std_control + 1e-5)) + mean_latents
                 conditional_controls = F.adaptive_avg_pool2d(conditional_controls, sample.shape[-2:])
-
+                #  0.2: This superparameter is used to adjust the control level: increasing this value will strengthen the control level.
                 sample = sample + conditional_controls * scale * 0.2
 
         if down_block_additional_residuals is not None:

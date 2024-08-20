@@ -3,7 +3,7 @@
 
 
 
-##   [📝 Project Page](https://pbihao.github.io/projects/controlnext/index.html)  |  [📚 Paper](https://arxiv.org/abs/2408.06070) | [🗂️ Demo](https://huggingface.co/spaces/Eugeoter/ControlNeXt)
+##   [📝 Project Page](https://pbihao.github.io/projects/controlnext/index.html)  |  [📚 Paper](https://arxiv.org/abs/2408.06070) | [🗂️ Demo (SDXL)](https://huggingface.co/spaces/Eugeoter/ControlNeXt)
 
 
 **ControlNeXt** is our official implementation for controllable generation, supporting both images and videos while incorporating diverse forms of control information. In this project, we propose a new method that reduces trainable parameters by up to 90% compared with ControlNet, achieving faster convergence and outstanding efficiency. This method can be directly combined with other LoRA techniques to alter style and ensure more stable generation. Please refer to the examples for more details.
@@ -19,6 +19,8 @@ We spent a lot of time to find these. Now share with all of you. May these will 
 # Model Zoo
 
 - **ControlNeXt-SDXL** [ [Link](ControlNeXt-SDXL) ] : Controllable image generation. Our model is built upon [Stable Diffusion XL ](stabilityai/stable-diffusion-xl-base-1.0). Fewer trainable parameters, faster convergence, improved efficiency, and can be integrated with LoRA.
+
+- **ControlNeXt-SDXL-Training** [ [Link](ControlNeXt-SDXL-Training) ] :  The training scripts for our `ControlNeXt-SDXL` [ [Link](ControlNeXt-SDXL) ].
 
 - **ControlNeXt-SVD-v2** [ [Link](ControlNeXt-SVD-v2) ] :  Generate the video controlled by the sequence of human poses. In the v2 version, we implement several improvements: a higher-quality collected training dataset, larger training and inference batch frames, higher generation resolution, enhanced human-related video generation through continual training, and pose alignment for inference to improve overall performance.
 

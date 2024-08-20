@@ -1,0 +1,11 @@
+torch
+torchvision
+accelerate
+opencv-python
+pillow
+numpy
+transformers
+diffusers
+safetensors
+peft
+xformers

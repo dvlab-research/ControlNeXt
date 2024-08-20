@@ -22,6 +22,7 @@ def log_validation(
         revision=args.revision,
         variant=args.variant,
         hf_cache_dir=args.hf_cache_dir,
+        use_safetensors=args.use_safetensors,
         device=device,
     )
 
@@ -160,6 +161,11 @@ def parse_args(input_args=None):
         type=str,
         default=None,
         help="Variant of the model files of the pretrained model identifier from huggingface.co/models, 'e.g.' fp16",
+    )
+    parser.add_argument(
+        "--use_safetensors",
+        action="store_true",
+        help="Whether or not to use safetensors to load the pipeline.",
     )
     parser.add_argument(
         "--output_dir",

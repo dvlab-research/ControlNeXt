@@ -1,8 +1,12 @@
 # 🌀 ControlNeXt-SVD-v2-Training
 
 # Important
+
+I found that sometimes, when I change the version of dependencies, the training may not converge at all. I haven't identified the reason yet, but I've listed all our dependencies in the [requirements.txt](./requirements.txt) file. It's a bit detailed, but you can focus on the key dependencies like `torch`, `deepspeed`, `diffusers`, `accelerate`... When issues arise, checking these first may help.
+
 > The training scripts are still under testing after my reconstruction. Since there has been significant demand, I'm releasing them now. Please keep an eye out for updates.
 
+## Main
 
 Due to privacy concerns, we are unable to release certain resources, such as the training data and the SD3-based model. However, we are committed to sharing as much as possible. If you find this repository helpful, please consider giving us a star or citing our work!
 

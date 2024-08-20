@@ -45,7 +45,7 @@ However, if this value is set too high, the control may become overly strong and
 So you can adjust it to get a good result. In our experiences, for the dense controls such as super-resolution or depth, we need to set it as `1`.
 
 
-### 6. Traing parameters 
+### 6. Training parameters 
 
 One of the most important findings is that directly training the base model yields better performance compared to methods like LoRA, Adapter, and others.Even when we train the base model, we only select a small subset of the pre-trained parameters. You can also adaptively adjust the number of selected parameters. For example, with high-quality data, having more trainable parameters can improve performance. However, this is a trade-off, and regardless of the approach, directly training the base model often yields the best results.
 

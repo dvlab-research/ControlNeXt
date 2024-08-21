@@ -30,7 +30,7 @@ We spent a lot of time to find these. Now share with all of you. May these will 
 
 - **ControlNeXt-SD1.5** [ [Link](ControlNeXt-SD1.5) ] : Controllable image generation. Our model is built upon [Stable Diffusion 1.5](https://huggingface.co/runwayml/stable-diffusion-v1-5). Fewer trainable parameters, faster convergence, improved efficiency, and can be integrated with LoRA.
 
-- **ControlNeXt-SD1.5-Training** : The process is quite simple, so we do not plan to invest additional effort into it. You can directly use the HuggingFace examples. Please refer to the SDXL and SVD sections for our newly updated versions!
+- **ControlNeXt-SD1.5-Training** [ [Link](ControlNeXt-SD1.5-Training) ] : The training scripts for our `ControlNeXt-SD1.5` [ [Link](ControlNeXt-SD1.5) ].
 
 - **ControlNeXt-SD3** [ [Link](ControlNeXt-SD3) ] : Stay tuned.
 

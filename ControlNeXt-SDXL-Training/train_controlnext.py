@@ -199,7 +199,7 @@ def save_models(unet, controlnet, output_dir, args, orig_unet_sd=None):
     unet_sd = {k: v for k, v in unet_sd.items() if pattern.match(k)}
     if args.save_weights_increaments:
         for k, v in unet_sd.items():
-            unet_sd[k] -= orig_unet_sd[k]
+            unet_sd[k] = unet_sd[k].detach().cpu() - orig_unet_sd[k]
     save_file(unet_sd, os.path.join(output_dir, "unet_weight_increasements.safetensors"))
     save_file(controlnet.state_dict(), os.path.join(output_dir, "controlnet.safetensors"))
 

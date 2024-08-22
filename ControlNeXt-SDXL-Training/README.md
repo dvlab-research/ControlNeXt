@@ -41,6 +41,7 @@ accelerate launch train_controlnext.py --pretrained_model_name_or_path "stabilit
 --set_grads_to_none \
 --proportion_empty_prompts 0.2 \
 --controlnet_scale_factor 1.0 \
+--save_weights_increaments \
 --mixed_precision fp16 \
 --enable_xformers_memory_efficient_attention \
 --dataset_name "Nahrawy/VIDIT-Depth-ControlNet" \
@@ -51,5 +52,6 @@ accelerate launch train_controlnext.py --pretrained_model_name_or_path "stabilit
 --validation_image "examples/vidit_depth/condition_0.png"
 ```
 
-> --pretrained_model_name_or_path : pretrained base model \
+> --pretrained*model_name_or_path : pretrained base model \
 > --controlnet_scale_factor : the strength of the controlnet output. For depth, we recommend 1.0, and for canny, we recommend 0.35 \
+> --save_weights_increaments : whether to save the trainable parameters of unet directly or just the weight increments, i.e., $W*{finetune} - W\_{pretrained}$. This is useful when adapting to various base models.

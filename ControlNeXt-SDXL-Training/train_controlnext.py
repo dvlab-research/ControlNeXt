@@ -192,12 +192,15 @@ def log_validation(vae, unet, controlnet, args, accelerator, weight_dtype, step,
         return image_logs
 
 
-def save_models(unet, controlnet, output_dir, args):
+def save_models(unet, controlnet, output_dir, args, orig_unet_sd=None):
     os.makedirs(output_dir, exist_ok=True)
     unet_sd = unet.state_dict()
     pattern = re.compile(args.unet_trainable_param_pattern)
     unet_sd = {k: v for k, v in unet_sd.items() if pattern.match(k)}
-    save_file(unet_sd, os.path.join(output_dir, "unet.safetensors"))
+    if args.save_weights_increaments:
+        for k, v in unet_sd.items():
+            unet_sd[k] -= orig_unet_sd[k]
+    save_file(unet_sd, os.path.join(output_dir, "unet_weight_increasements.safetensors"))
     save_file(controlnet.state_dict(), os.path.join(output_dir, "controlnet.safetensors"))
 
 
@@ -307,11 +310,16 @@ def parse_args(input_args=None):
         help="Path to an improved VAE to stabilize training. For more details check out: https://github.com/huggingface/diffusers/pull/4038.",
     )
     parser.add_argument(
+        "--pretrained_unet_model_name_or_path",
+        type=str,
+        default=None,
+        help="Path to pretrained unet safetensors file if you want to continue training.",
+    )
+    parser.add_argument(
         "--controlnet_model_name_or_path",
         type=str,
         default=None,
-        help="Path to pretrained controlnet model or model identifier from huggingface.co/models."
-        " If not specified controlnet weights are initialized from unet.",
+        help="Path to pretrained controlnet safetensors file if you want to continue training.",
     )
     parser.add_argument(
         "--variant",
@@ -368,6 +376,18 @@ def parse_args(input_args=None):
             " For depth control, we recommend setting this to 1.0."
             " For canny control, we recommend setting this to 0.35."
         )
+    )
+    parser.add_argument(
+        "--save_weights_increaments",
+        type=bool,
+        default=False,
+        help="Save the unet weights in increaments",
+    )
+    parser.add_argument(
+        "--load_weights_increaments",
+        type=bool,
+        default=False,
+        help="Load the unet weights in increaments",
     )
     parser.add_argument(
         "--crops_coords_top_left_h",
@@ -980,13 +1000,28 @@ def main(args):
         args.pretrained_model_name_or_path, subfolder="unet", revision=args.revision, variant=args.variant, use_safetensors=args.use_safetensors,
     )
 
+    if args.load_weights_increaments or args.save_weights_increaments:
+        import copy
+        orig_unet_sd = copy.deepcopy(unet.state_dict())
+
+    if args.pretrained_unet_model_name_or_path:
+        logger.info("Loading existing unet weights")
+        unet_sd = load_file(args.pretrained_unet_model_name_or_path)
+        if args.load_weights_increaments:
+            logger.info("Loading unet weights in increaments")
+            for k in unet_sd.keys():
+                unet_sd[k] += orig_unet_sd[k]
+        unet.load_state_dict(unet_sd)
+    else:
+        logger.info("Initializing unet weights from scratch")
+        pass
+
+    controlnet = ControlNetModel()
     if args.controlnet_model_name_or_path:
         logger.info("Loading existing controlnet weights")
-        controlnet = ControlNetModel()
         controlnet.load_state_dict(load_file(args.controlnet_model_name_or_path))
     else:
         logger.info("Initializing controlnet weights from scratch")
-        controlnet = ControlNetModel()
 
     def unwrap_model(model):
         model = accelerator.unwrap_model(model)

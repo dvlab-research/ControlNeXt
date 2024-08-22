@@ -1445,6 +1445,7 @@ def main(args):
             accelerator.unwrap_model(controlnet),
             save_path,
             args,
+            orig_unet_sd if args.save_weights_increaments else None,
         )
 
         # Run a final round of validation.

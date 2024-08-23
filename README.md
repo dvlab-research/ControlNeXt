@@ -32,7 +32,7 @@ We spent a lot of time to find these. Now share with all of you. May these will 
 
 - **ControlNeXt-SD1.5-Training** [ [Link](ControlNeXt-SD1.5-Training) ] : The training scripts for our `ControlNeXt-SD1.5` [ [Link](ControlNeXt-SD1.5) ].
 
-- **ControlNeXt-SD3** [ [Link](ControlNeXt-SD3) ] : Stay tuned.
+- **ControlNeXt-SD3** [ [Link](ControlNeXt-SD3) ] :  We are regret to inform that ControlNeXt-SD3 is trained with protected and private data and code, and therefore cannot be released. 
 
 
 

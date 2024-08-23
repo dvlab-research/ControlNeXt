@@ -8,4 +8,5 @@ python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix
     --validation_image "examples/anime_canny/condition_0.png" \
     --output_dir "examples/anime_canny" \
     --load_weight_increasement \
+    --use_safetensors \
     --variant fp16

@@ -104,7 +104,7 @@ bash examples/anime_canny/run.sh
 python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix" \
   --unet_model_name_or_path "pretrained/anime_canny/unet.safetensors" \
   --controlnet_model_name_or_path "pretrained/anime_canny/controlnet.safetensors" \
-  --controlnet_scale 0.35 \
+  --controlnet_scale 1.0 \
   --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
   --validation_prompt "3d style, photorealistic style, 1girl, arknights, amiya (arknights), solo, white background, upper body, looking at viewer, blush, closed mouth, low ponytail, black jacket, hooded jacket, open jacket, hood down, blue neckwear" \
   --negative_prompt "worst quality, abstract, clumsy pose, deformed hand, fused fingers, extra digits, fewer digits, fewer fingers, extra fingers, extra arm, missing arm, extra leg, missing leg, signature, artist name, multi views, disfigured, ugly" \
@@ -117,7 +117,7 @@ python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix
 > --pretrained_model_name_or_path : pretrained base model \
 > --unet_model_name_or_path : the model path of a subset of unet parameters \
 > --controlnet_model_name_or_path : the model path of controlnet (a light weight module) \
-> --controlnet_scale : the strength of the controlnet output. For canny condition, we recommend 0.35 \
+> --controlnet_scale : the strength of the controlnet output. \
 > --lora_path : downloaded other LoRA weight \
 > --validation_image : the control condition image \
 
@@ -148,7 +148,7 @@ We also provide a simple image processor to help you automatically convert the i
 python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix" \
   --unet_model_name_or_path "pretrained/anime_canny/unet.safetensors" \
   --controlnet_model_name_or_path "pretrained/anime_canny/controlnet.safetensors" \
-  --controlnet_scale 0.35 \
+  --controlnet_scale 1.0 \
   --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
   --validation_prompt "3d style, photorealistic style, 1girl, arknights, amiya (arknights), solo, white background, upper body, looking at viewer, blush, closed mouth, low ponytail, black jacket, hooded jacket, open jacket, hood down, blue neckwear" \
   --negative_prompt "worst quality, abstract, clumsy pose, deformed hand, fused fingers, extra digits, fewer digits, fewer fingers, extra fingers, extra arm, missing arm, extra leg, missing leg, signature, artist name, multi views, disfigured, ugly" \
@@ -161,58 +161,3 @@ python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix
 
 > --validation_image : the image to be processed to the control condition. \
 > --validation_image_processor : the processor to apply to the validation image. We support `canny` now.
-
-# Training
-
-Hardware requirement: A single GPU with at least 20GB memory.
-
-## Quick Start
-
-Clone the repository:
-
-```bash
-git clone https://github.com/dvlab-research/ControlNeXt
-cd ControlNeXt/ControlNeXt-SDXL
-```
-
-Install the required packages:
-
-```bash
-pip install -r requirements.txt
-pip install accelerate datasets torchvision
-```
-
-Run the training script:
-
-```bash
-bash examples/anime_canny/train.sh
-```
-
-The output will be saved in `train/example`.
-
-## Usage
-
-```python
-accelerate launch train_controlnext.py --pretrained_model_name_or_path "stabilityai/stable-diffusion-xl-base-1.0" \
---pretrained_vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
---variant fp16 \
---use_safetensors \
---output_dir "train/example" \
---logging_dir "logs" \
---resolution 1024 \
---gradient_checkpointing \
---set_grads_to_none \
---proportion_empty_prompts 0.2 \
---controlnet_scale_factor 1.0 \
---mixed_precision fp16 \
---enable_xformers_memory_efficient_attention \
---dataset_name "Nahrawy/VIDIT-Depth-ControlNet" \
---image_column "image" \
---conditioning_image_column "depth_map" \
---caption_column "caption" \
---validation_prompt "a stone tower on a rocky island" \
---validation_image "examples/vidit_depth/condition_0.png"
-```
-
-> --pretrained_model_name_or_path : pretrained base model \
-> --controlnet_scale_factor : the strength of the controlnet output. For depth, we recommend 1.0, and for canny, we recommend 0.35 \

@@ -49,24 +49,14 @@ def get_pipeline(
         unet = UNet2DConditionModel.from_config(UNET_CONFIG)
         unet.load_state_dict(unet_sd, strict=True)
     else:
-        from huggingface_hub import hf_hub_download
-        filename = "diffusion_pytorch_model"
-        if variant == "fp16":
-            filename += ".fp16"
-        if use_safetensors:
-            filename += ".safetensors"
-        else:
-            filename += ".pt"
-        unet_file = hf_hub_download(
-            repo_id=pretrained_model_name_or_path,
-            filename="unet" + '/' + filename,
+        unet = UNet2DConditionModel.from_pretrained(
+            pretrained_model_name_or_path,
             cache_dir=hf_cache_dir,
+            variant=variant,
+            torch_dtype=torch.float16,
+            use_safetensors=use_safetensors,
+            subfolder="unet",
         )
-        unet_sd = load_file(unet_file) if unet_file.endswith(".safetensors") else torch.load(pretrained_model_name_or_path)
-        unet_sd = utils.extract_unet_state_dict(unet_sd)
-        unet_sd = utils.convert_sdxl_unet_state_dict_to_diffusers(unet_sd)
-        unet = UNet2DConditionModel.from_config(UNET_CONFIG)
-        unet.load_state_dict(unet_sd, strict=True)
     unet = unet.to(dtype=torch.float16)
     utils.log_model_info(unet, "unet")
 
@@ -121,7 +111,7 @@ def get_pipeline(
         pipeline.enable_xformers_memory_efficient_attention()
 
     gc.collect()
-    if device.type == 'cuda' and torch.cuda.is_available():
+    if str(device) == 'cuda' and torch.cuda.is_available():
         torch.cuda.empty_cache()
 
     return pipeline

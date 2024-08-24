@@ -84,7 +84,7 @@ Download the pretrained weight into `pretrained/` from [here](https://huggingfac
 ```bash
 python -m pip install "huggingface_hub[cli]"
 mkdir pretrained
-huggingface-cli download Pbihao/ControlNeXt ControlAny-SDXL/anime_canny/unet.safetensors ControlAny-SDXL/anime_canny/controlnet.safetensors --local-dir .
+huggingface-cli download Pbihao/ControlNeXt ControlAny-SDXL/anime_canny/unet.safetensors ControlAny-SDXL/anime_canny/controlnet.safetensors --local-dir pretrained
 mv pretrained/ControlAny-SDXL/* pretrained/
 ```
 

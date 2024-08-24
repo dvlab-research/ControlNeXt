@@ -9,3 +9,5 @@ diffusers
 safetensors
 peft
 xformers
+huggingface-hub
+datasets

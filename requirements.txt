@@ -8,3 +8,4 @@ diffusers
 safetensors
 peft
 decord
+einops

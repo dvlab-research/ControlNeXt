@@ -177,19 +177,20 @@ def log_validation(vae, unet, controlnet, args, accelerator, weight_dtype, step,
         else:
             logger.warning(f"image logging not implemented for {tracker.name}")
 
-        formatted_images = []
-        formatted_images.append(validation_image)
-        for i, image in enumerate(images):
-            formatted_images.append(image)
-            image.save(os.path.join(sample_dir, f"image-{i}_{step}.png"))
-        image_grid = make_image_grid(formatted_images, 1, len(formatted_images))
-        image_grid.save(os.path.join(sample_dir, f"grid_{step}.png"))
+    formatted_images = []
+    formatted_images.append(validation_image)
+    for i, image in enumerate(images):
+        formatted_images.append(image)
+        image.save(os.path.join(sample_dir, f"image-{i}_{step}.png"))
+    image_grid = make_image_grid(formatted_images, 1, len(formatted_images))
+    image_grid.save(os.path.join(sample_dir, f"grid_{step}.png"))
+    logger.info(f"{len(formatted_images)} validation images saved to {sample_dir}")
 
-        del pipeline
-        gc.collect()
-        torch.cuda.empty_cache()
+    del pipeline
+    gc.collect()
+    torch.cuda.empty_cache()
 
-        return image_logs
+    return image_logs
 
 
 def save_models(unet, controlnet, output_dir, args, orig_unet_sd=None):

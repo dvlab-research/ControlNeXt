@@ -11,3 +11,4 @@ peft
 xformers
 huggingface-hub
 datasets
+einops

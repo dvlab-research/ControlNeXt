@@ -6,3 +6,4 @@ transformers
 diffusers
 safetensors
 peft
+einops

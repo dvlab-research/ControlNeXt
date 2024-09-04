@@ -107,9 +107,10 @@ python run_controlnext.py --pretrained_model_name_or_path "neta-art/neta-xl-2.0"
 ### Depth Condition
 
 ```python
+# examples/vidit_depth/run.sh
 python run_controlnext.py  --pretrained_model_name_or_path "stabilityai/stable-diffusion-xl-base-1.0" \
-    --unet_model_name_or_path "pretrained/vidit_depth/unet.safetensors" \
-    --controlnet_model_name_or_path "pretrained/vidit_depth/controlnet.safetensors" \
+    --unet_model_name_or_path "Eugeoter/controlnext-sdxl-vidit-depth" \
+    --controlnet_model_name_or_path "Eugeoter/controlnext-sdxl-vidit-depth" \
     --controlnet_scale 1.0 \
     --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
     --validation_prompt "a diamond tower in the middle of a lava lake" \
@@ -126,9 +127,10 @@ python run_controlnext.py  --pretrained_model_name_or_path "stabilityai/stable-d
 We also provide a simple image processor to help you automatically convert the image to the control condition, such as canny.
 
 ```python
+# examples/anime_canny/run_with_pp.sh
 python run_controlnext.py --pretrained_model_name_or_path "neta-art/neta-xl-2.0" \
-  --unet_model_name_or_path "pretrained/anime_canny/unet.safetensors" \
-  --controlnet_model_name_or_path "pretrained/anime_canny/controlnet.safetensors" \
+  --unet_model_name_or_path "Eugeoter/controlnext-sdxl-anime-canny" \
+  --controlnet_model_name_or_path "Eugeoter/controlnext-sdxl-anime-canny" \
   --controlnet_scale 1.0 \
   --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
   --validation_prompt "3d style, photorealistic style, 1girl, arknights, amiya (arknights), solo, white background, upper body, looking at viewer, blush, closed mouth, low ponytail, black jacket, hooded jacket, open jacket, hood down, blue neckwear" \

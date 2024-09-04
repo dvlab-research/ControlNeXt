@@ -1,13 +1,21 @@
 import os
 import gc
 import torch
-from torch import nn
-from diffusers import UniPCMultistepScheduler, AutoencoderKL
+from diffusers import UniPCMultistepScheduler, AutoencoderKL, ControlNetModel
 from safetensors.torch import load_file
 from pipeline.pipeline_controlnext import StableDiffusionXLControlNeXtPipeline
 from models.unet import UNet2DConditionModel, UNET_CONFIG
 from models.controlnet import ControlNetModel
 from . import utils
+
+CONTROLNET_CONFIG = {
+    'in_channels': [128, 128],
+    'out_channels': [128, 256],
+    'groups': [4, 8],
+    'time_embed_dim': 256,
+    'final_out_channels': 320,
+    '_use_default_values': ['time_embed_dim', 'groups', 'in_channels', 'final_out_channels', 'out_channels']
+}
 
 
 def get_pipeline(
@@ -25,20 +33,6 @@ def get_pipeline(
     device=None,
 ):
     pipeline_init_kwargs = {}
-
-    if controlnet_model_name_or_path is not None:
-        print(f"loading controlnet from {controlnet_model_name_or_path}")
-        controlnet = ControlNetModel()
-        if controlnet_model_name_or_path is not None:
-            utils.load_safetensors(controlnet, controlnet_model_name_or_path)
-        else:
-            controlnet.scale = nn.Parameter(torch.tensor(0.), requires_grad=False)
-        controlnet.to(device, dtype=torch.float32)
-        pipeline_init_kwargs["controlnet"] = controlnet
-
-        utils.log_model_info(controlnet, "controlnext")
-    else:
-        print(f"no controlnet")
 
     print(f"loading unet from {pretrained_model_name_or_path}")
     if os.path.isfile(pretrained_model_name_or_path):
@@ -58,29 +52,15 @@ def get_pipeline(
             subfolder="unet",
         )
     unet = unet.to(dtype=torch.float16)
-    utils.log_model_info(unet, "unet")
-
-    if unet_model_name_or_path is not None:
-        print(f"loading controlnext unet from {unet_model_name_or_path}")
-        controlnext_unet_sd = load_file(unet_model_name_or_path)
-        controlnext_unet_sd = utils.convert_to_controlnext_unet_state_dict(controlnext_unet_sd)
-        unet_sd = unet.state_dict()
-        assert all(
-            k in unet_sd for k in controlnext_unet_sd), \
-            f"controlnext unet state dict is not compatible with unet state dict, missing keys: {set(controlnext_unet_sd.keys()) - set(unet_sd.keys())}, extra keys: {set(unet_sd.keys()) - set(controlnext_unet_sd.keys())}"
-        if load_weight_increasement:
-            print("loading weight increasement")
-            for k in controlnext_unet_sd.keys():
-                controlnext_unet_sd[k] = controlnext_unet_sd[k] + unet_sd[k]
-        unet.load_state_dict(controlnext_unet_sd, strict=False)
-        utils.log_model_info(controlnext_unet_sd, "controlnext unet")
-
     pipeline_init_kwargs["unet"] = unet
 
     if vae_model_name_or_path is not None:
         print(f"loading vae from {vae_model_name_or_path}")
         vae = AutoencoderKL.from_pretrained(vae_model_name_or_path, cache_dir=hf_cache_dir, torch_dtype=torch.float16).to(device)
         pipeline_init_kwargs["vae"] = vae
+
+    if controlnet_model_name_or_path is not None:
+        pipeline_init_kwargs["controlnet"] = ControlNetModel.from_config(CONTROLNET_CONFIG).to(device, dtype=torch.float32)  # init
 
     print(f"loading pipeline from {pretrained_model_name_or_path}")
     if os.path.isfile(pretrained_model_name_or_path):
@@ -102,6 +82,20 @@ def get_pipeline(
         )
 
     pipeline.scheduler = UniPCMultistepScheduler.from_config(pipeline.scheduler.config)
+    if unet_model_name_or_path is not None:
+        pipeline.load_controlnext_unet_weights(
+            unet_model_name_or_path,
+            load_weight_increasement=load_weight_increasement,
+            use_safetensors=True,
+            torch_dtype=torch.float16,
+            cache_dir=hf_cache_dir,
+        )
+    pipeline.load_controlnext_controlnet_weights(
+        controlnet_model_name_or_path,
+        use_safetensors=True,
+        torch_dtype=torch.float32,
+        cache_dir=hf_cache_dir,
+    )
     pipeline.set_progress_bar_config()
     pipeline = pipeline.to(device, dtype=torch.float16)
 

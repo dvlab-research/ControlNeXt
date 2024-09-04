@@ -17,7 +17,7 @@ Our method demonstrates the advantages listed below:
 The demo examples are generated using the ControlNeXt trained on
 
 - (i) our vidit_depth dataset with utilizing [Stable Diffusion XL 1.0 Base](stabilityai/stable-diffusion-xl-base-1.0) as the base model.
-- (ii) our anime_canny dataset with utilizing [Neta XL V2](https://civitai.com/models/410737/neta-art-xl) as the base model.
+- (ii) our anime_canny dataset with utilizing [Neta Art XL 2.0](https://civitai.com/models/410737/neta-art-xl) as the base model.
 
 Our method demonstrates excellent compatibility and can be applied to most other models based on SDXL1.0 architecture and LoRA. And you can retrain your own model for better performance.
 
@@ -79,15 +79,6 @@ Install the required packages:
 pip install -r requirements.txt
 ```
 
-Download the pretrained weight into `pretrained/` from [here](https://huggingface.co/Pbihao/ControlNeXt/tree/main/ControlAny-SDXL). You can download manually or use the following commands:
-
-```bash
-python -m pip install "huggingface_hub[cli]"
-mkdir pretrained
-huggingface-cli download Pbihao/ControlNeXt ControlAny-SDXL/anime_canny/unet.safetensors ControlAny-SDXL/anime_canny/controlnet.safetensors --local-dir pretrained
-mv pretrained/ControlAny-SDXL/* pretrained/
-```
-
 (Optional) Download the LoRA weight, such as [Amiya (Arknights) Fresh Art Style](https://civitai.com/models/231598/amiya-arknights-fresh-art-style-xl-trained-with-6k-images). And put them under `lora/`.
 
 Run the example:
@@ -101,25 +92,17 @@ bash examples/anime_canny/run.sh
 ### Canny Condition
 
 ```python
-python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix" \
-  --unet_model_name_or_path "pretrained/anime_canny/unet.safetensors" \
-  --controlnet_model_name_or_path "pretrained/anime_canny/controlnet.safetensors" \
+python run_controlnext.py --pretrained_model_name_or_path "neta-art/neta-xl-2.0" \
+  --unet_model_name_or_path "Eugeoter/controlnext-sdxl-anime-canny" \
+  --controlnet_model_name_or_path "Eugeoter/controlnext-sdxl-anime-canny" \
   --controlnet_scale 1.0 \
   --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
   --validation_prompt "3d style, photorealistic style, 1girl, arknights, amiya (arknights), solo, white background, upper body, looking at viewer, blush, closed mouth, low ponytail, black jacket, hooded jacket, open jacket, hood down, blue neckwear" \
   --negative_prompt "worst quality, abstract, clumsy pose, deformed hand, fused fingers, extra digits, fewer digits, fewer fingers, extra fingers, extra arm, missing arm, extra leg, missing leg, signature, artist name, multi views, disfigured, ugly" \
-  --validation_image "examples/anime_canny/condition_0.png" \
+  --validation_image "examples/anime_canny/condition_0.png" \ # input canny image
   --output_dir "examples/anime_canny" \
-  --load_weight_increasement \
-  --variant fp16
+  --load_weight_increasement
 ```
-
-> --pretrained_model_name_or_path : pretrained base model \
-> --unet_model_name_or_path : the model path of a subset of unet parameters \
-> --controlnet_model_name_or_path : the model path of controlnet (a light weight module) \
-> --controlnet_scale : the strength of the controlnet output. \
-> --lora_path : downloaded other LoRA weight \
-> --validation_image : the control condition image \
 
 ### Depth Condition
 
@@ -130,7 +113,7 @@ python run_controlnext.py  --pretrained_model_name_or_path "stabilityai/stable-d
     --controlnet_scale 1.0 \
     --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
     --validation_prompt "a diamond tower in the middle of a lava lake" \
-    --validation_image "examples/vidit_depth/condition_0.png" \
+    --validation_image "examples/vidit_depth/condition_0.png" \ # input depth image
     --output_dir "examples/vidit_depth" \
     --width 1024 \
     --height 1024 \
@@ -138,26 +121,20 @@ python run_controlnext.py  --pretrained_model_name_or_path "stabilityai/stable-d
     --variant fp16
 ```
 
-> --controlnet_scale : the strength of the controlnet output. For depth, we recommend 1.0 \
-
 ## Run with Image Processor
 
 We also provide a simple image processor to help you automatically convert the image to the control condition, such as canny.
 
 ```python
-python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix" \
+python run_controlnext.py --pretrained_model_name_or_path "neta-art/neta-xl-2.0" \
   --unet_model_name_or_path "pretrained/anime_canny/unet.safetensors" \
   --controlnet_model_name_or_path "pretrained/anime_canny/controlnet.safetensors" \
   --controlnet_scale 1.0 \
   --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
   --validation_prompt "3d style, photorealistic style, 1girl, arknights, amiya (arknights), solo, white background, upper body, looking at viewer, blush, closed mouth, low ponytail, black jacket, hooded jacket, open jacket, hood down, blue neckwear" \
   --negative_prompt "worst quality, abstract, clumsy pose, deformed hand, fused fingers, extra digits, fewer digits, fewer fingers, extra fingers, extra arm, missing arm, extra leg, missing leg, signature, artist name, multi views, disfigured, ugly" \
-  --validation_image "examples/anime_canny/image_0.png" \
-  --validation_image_processor "canny" \
+  --validation_image "examples/anime_canny/image_0.png" \ # input image (not canny)
+  --validation_image_processor "canny" \ # preprocess `validation_image` to canny condition
   --output_dir "examples/anime_canny" \
-  --load_weight_increasement \
-  --variant fp16
+  --load_weight_increasement
 ```
-
-> --validation_image : the image to be processed to the control condition. \
-> --validation_image_processor : the processor to apply to the validation image. We support `canny` now.

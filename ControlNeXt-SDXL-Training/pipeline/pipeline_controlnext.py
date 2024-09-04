@@ -14,7 +14,6 @@
 
 import inspect
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
-from packaging import version
 import torch
 from transformers import (
     CLIPImageProcessor,
@@ -57,6 +56,7 @@ from diffusers.utils import (
 from diffusers.utils.torch_utils import randn_tensor
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline, StableDiffusionMixin
 from diffusers.pipelines.stable_diffusion_xl.pipeline_output import StableDiffusionXLPipelineOutput
+from huggingface_hub.utils import validate_hf_hub_args
 
 if is_invisible_watermark_available():
     from diffusers.pipelines.stable_diffusion_xl.watermark import StableDiffusionXLWatermarker
@@ -87,8 +87,128 @@ EXAMPLE_DOC_STRING = """
         ```
 """
 
+CONTROLNEXT_WEIGHT_NAME = "controlnet.bin"
+CONTROLNEXT_WEIGHT_NAME_SAFE = "controlnet.safetensors"
+UNET_WEIGHT_NAME = "unet.bin"
+UNET_WEIGHT_NAME_SAFE = "unet.safetensors"
+
+
+# Copied from https://github.com/kohya-ss/sd-scripts/blob/main/library/sdxl_model_util.py
+
+def is_sdxl_state_dict(state_dict):
+    return any(key.startswith('input_blocks') for key in state_dict.keys())
+
+
+def convert_sdxl_unet_state_dict_to_diffusers(sd):
+    unet_conversion_map = make_unet_conversion_map()
+
+    conversion_dict = {sd: hf for sd, hf in unet_conversion_map}
+    return convert_unet_state_dict(sd, conversion_dict)
+
+
+def convert_unet_state_dict(src_sd, conversion_map):
+    converted_sd = {}
+    for src_key, value in src_sd.items():
+        src_key_fragments = src_key.split(".")[:-1]  # remove weight/bias
+        while len(src_key_fragments) > 0:
+            src_key_prefix = ".".join(src_key_fragments) + "."
+            if src_key_prefix in conversion_map:
+                converted_prefix = conversion_map[src_key_prefix]
+                converted_key = converted_prefix + src_key[len(src_key_prefix):]
+                converted_sd[converted_key] = value
+                break
+            src_key_fragments.pop(-1)
+        assert len(src_key_fragments) > 0, f"key {src_key} not found in conversion map"
+
+    return converted_sd
+
+
+def make_unet_conversion_map():
+    unet_conversion_map_layer = []
+
+    for i in range(3):  # num_blocks is 3 in sdxl
+        # loop over downblocks/upblocks
+        for j in range(2):
+            # loop over resnets/attentions for downblocks
+            hf_down_res_prefix = f"down_blocks.{i}.resnets.{j}."
+            sd_down_res_prefix = f"input_blocks.{3*i + j + 1}.0."
+            unet_conversion_map_layer.append((sd_down_res_prefix, hf_down_res_prefix))
+
+            if i < 3:
+                # no attention layers in down_blocks.3
+                hf_down_atn_prefix = f"down_blocks.{i}.attentions.{j}."
+                sd_down_atn_prefix = f"input_blocks.{3*i + j + 1}.1."
+                unet_conversion_map_layer.append((sd_down_atn_prefix, hf_down_atn_prefix))
+
+        for j in range(3):
+            # loop over resnets/attentions for upblocks
+            hf_up_res_prefix = f"up_blocks.{i}.resnets.{j}."
+            sd_up_res_prefix = f"output_blocks.{3*i + j}.0."
+            unet_conversion_map_layer.append((sd_up_res_prefix, hf_up_res_prefix))
+
+            # if i > 0: commentout for sdxl
+            # no attention layers in up_blocks.0
+            hf_up_atn_prefix = f"up_blocks.{i}.attentions.{j}."
+            sd_up_atn_prefix = f"output_blocks.{3*i + j}.1."
+            unet_conversion_map_layer.append((sd_up_atn_prefix, hf_up_atn_prefix))
+
+        if i < 3:
+            # no downsample in down_blocks.3
+            hf_downsample_prefix = f"down_blocks.{i}.downsamplers.0.conv."
+            sd_downsample_prefix = f"input_blocks.{3*(i+1)}.0.op."
+            unet_conversion_map_layer.append((sd_downsample_prefix, hf_downsample_prefix))
+
+            # no upsample in up_blocks.3
+            hf_upsample_prefix = f"up_blocks.{i}.upsamplers.0."
+            sd_upsample_prefix = f"output_blocks.{3*i + 2}.{2}."  # change for sdxl
+            unet_conversion_map_layer.append((sd_upsample_prefix, hf_upsample_prefix))
+
+    hf_mid_atn_prefix = "mid_block.attentions.0."
+    sd_mid_atn_prefix = "middle_block.1."
+    unet_conversion_map_layer.append((sd_mid_atn_prefix, hf_mid_atn_prefix))
+
+    for j in range(2):
+        hf_mid_res_prefix = f"mid_block.resnets.{j}."
+        sd_mid_res_prefix = f"middle_block.{2*j}."
+        unet_conversion_map_layer.append((sd_mid_res_prefix, hf_mid_res_prefix))
+
+    unet_conversion_map_resnet = [
+        # (stable-diffusion, HF Diffusers)
+        ("in_layers.0.", "norm1."),
+        ("in_layers.2.", "conv1."),
+        ("out_layers.0.", "norm2."),
+        ("out_layers.3.", "conv2."),
+        ("emb_layers.1.", "time_emb_proj."),
+        ("skip_connection.", "conv_shortcut."),
+    ]
+
+    unet_conversion_map = []
+    for sd, hf in unet_conversion_map_layer:
+        if "resnets" in hf:
+            for sd_res, hf_res in unet_conversion_map_resnet:
+                unet_conversion_map.append((sd + sd_res, hf + hf_res))
+        else:
+            unet_conversion_map.append((sd, hf))
+
+    for j in range(2):
+        hf_time_embed_prefix = f"time_embedding.linear_{j+1}."
+        sd_time_embed_prefix = f"time_embed.{j*2}."
+        unet_conversion_map.append((sd_time_embed_prefix, hf_time_embed_prefix))
+
+    for j in range(2):
+        hf_label_embed_prefix = f"add_embedding.linear_{j+1}."
+        sd_label_embed_prefix = f"label_emb.0.{j*2}."
+        unet_conversion_map.append((sd_label_embed_prefix, hf_label_embed_prefix))
+
+    unet_conversion_map.append(("input_blocks.0.0.", "conv_in."))
+    unet_conversion_map.append(("out.0.", "conv_norm_out."))
+    unet_conversion_map.append(("out.2.", "conv_out."))
+
+    return unet_conversion_map
 
 # Copied from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion.rescale_noise_cfg
+
+
 def rescale_noise_cfg(noise_cfg, noise_pred_text, guidance_rescale=0.0):
     """
     Rescale `noise_cfg` according to `guidance_rescale`. Based on findings of [Common Diffusion Noise Schedules and
@@ -279,6 +399,156 @@ class StableDiffusionXLControlNeXtPipeline(
             self.watermark = StableDiffusionXLWatermarker()
         else:
             self.watermark = None
+
+    def load_controlnext_weights(
+        self,
+        pretrained_model_name_or_path_or_dict: Union[str, Dict[str, torch.Tensor]],
+        load_weight_increasement: bool = False,
+        **kwargs,
+    ):
+        self.load_controlnext_unet_weights(pretrained_model_name_or_path_or_dict, load_weight_increasement, **kwargs)
+        kwargs['torch_dtype'] = torch.float32
+        self.load_controlnext_controlnet_weights(pretrained_model_name_or_path_or_dict, **kwargs)
+
+    def load_controlnext_unet_weights(
+        self,
+        pretrained_model_name_or_path_or_dict: Union[str, Dict[str, torch.Tensor]],
+        load_weight_increasement: bool = False,
+        **kwargs,
+    ):
+        if isinstance(pretrained_model_name_or_path_or_dict, dict):
+            pretrained_model_name_or_path_or_dict = pretrained_model_name_or_path_or_dict.copy()
+
+        state_dict = self.controlnext_unet_state_dict(pretrained_model_name_or_path_or_dict, **kwargs)
+        if is_sdxl_state_dict(state_dict):
+            state_dict = convert_sdxl_unet_state_dict_to_diffusers(state_dict)
+
+        logger.info(f"Loading ControlNeXt UNet" + (f" with weight increasement." if load_weight_increasement else "."))
+        if load_weight_increasement:
+            unet_sd = self.unet.state_dict()
+            for k in state_dict.keys():
+                state_dict[k] = state_dict[k] + unet_sd[k]
+        self.unet.load_state_dict(state_dict, strict=False)
+
+    @classmethod
+    @validate_hf_hub_args
+    def controlnext_unet_state_dict(
+        cls,
+        pretrained_model_name_or_path_or_dict: Union[str, Dict[str, torch.Tensor]],
+        **kwargs,
+    ):
+        if 'weight_name' not in kwargs:
+            kwargs['weight_name'] = UNET_WEIGHT_NAME_SAFE if kwargs.get('use_safetensors', False) else UNET_WEIGHT_NAME
+        return cls.controlnext_state_dict(pretrained_model_name_or_path_or_dict, **kwargs)
+
+    def load_controlnext_controlnet_weights(
+        self,
+        pretrained_model_name_or_path_or_dict: Union[str, Dict[str, torch.Tensor]],
+        **kwargs,
+    ):
+        if self.controlnet is None:
+            raise ValueError("No ControlNeXt ControlNet found in the pipeline.")
+        if isinstance(pretrained_model_name_or_path_or_dict, dict):
+            pretrained_model_name_or_path_or_dict = pretrained_model_name_or_path_or_dict.copy()
+
+        state_dict = self.controlnext_controlnet_state_dict(pretrained_model_name_or_path_or_dict, **kwargs)
+
+        logger.info(f"Loading ControlNeXt ControlNet")
+        self.controlnet.load_state_dict(state_dict, strict=True)
+
+    @classmethod
+    @validate_hf_hub_args
+    def controlnext_controlnet_state_dict(
+        cls,
+        pretrained_model_name_or_path_or_dict: Union[str, Dict[str, torch.Tensor]],
+        **kwargs,
+    ):
+        if 'weight_name' not in kwargs:
+            kwargs['weight_name'] = CONTROLNEXT_WEIGHT_NAME_SAFE if kwargs.get('use_safetensors', False) else CONTROLNEXT_WEIGHT_NAME
+        return cls.controlnext_state_dict(pretrained_model_name_or_path_or_dict, **kwargs)
+
+    @classmethod
+    @validate_hf_hub_args
+    def controlnext_state_dict(
+        cls,
+        pretrained_model_name_or_path_or_dict: Union[str, Dict[str, torch.Tensor]],
+        **kwargs,
+    ):
+        r"""
+        Return state dict for controlnext weights.
+
+        Parameters:
+            pretrained_model_name_or_path_or_dict (`str` or `os.PathLike` or `dict`):
+                Can be either:
+
+                    - A string, the *model id* (for example `google/ddpm-celebahq-256`) of a pretrained model hosted on
+                      the Hub.
+                    - A path to a *directory* (for example `./my_model_directory`) containing the model weights saved
+                      with [`ModelMixin.save_pretrained`].
+                    - A [torch state
+                      dict](https://pytorch.org/tutorials/beginner/saving_loading_models.html#what-is-a-state-dict).
+
+            cache_dir (`Union[str, os.PathLike]`, *optional*):
+                Path to a directory where a downloaded pretrained model configuration is cached if the standard cache
+                is not used.
+            force_download (`bool`, *optional*, defaults to `False`):
+                Whether or not to force the (re-)download of the model weights and configuration files, overriding the
+                cached versions if they exist.
+
+            proxies (`Dict[str, str]`, *optional*):
+                A dictionary of proxy servers to use by protocol or endpoint, for example, `{'http': 'foo.bar:3128',
+                'http://hostname': 'foo.bar:4012'}`. The proxies are used on each request.
+            local_files_only (`bool`, *optional*, defaults to `False`):
+                Whether to only load local model weights and configuration files or not. If set to `True`, the model
+                won't be downloaded from the Hub.
+            token (`str` or *bool*, *optional*):
+                The token to use as HTTP bearer authorization for remote files. If `True`, the token generated from
+                `diffusers-cli login` (stored in `~/.huggingface`) is used.
+            revision (`str`, *optional*, defaults to `"main"`):
+                The specific model version to use. It can be a branch name, a tag name, a commit id, or any identifier
+                allowed by Git.
+            subfolder (`str`, *optional*, defaults to `""`):
+                The subfolder location of a model file within a larger model repository on the Hub or locally.
+            weight_name (`str`, *optional*, defaults to None):
+                Name of the serialized state dict file.
+        """
+        cache_dir = kwargs.pop("cache_dir", None)
+        force_download = kwargs.pop("force_download", False)
+        proxies = kwargs.pop("proxies", None)
+        local_files_only = kwargs.pop("local_files_only", None)
+        token = kwargs.pop("token", None)
+        revision = kwargs.pop("revision", None)
+        subfolder = kwargs.pop("subfolder", None)
+        weight_name = kwargs.pop("weight_name", None)
+        unet_config = kwargs.pop("unet_config", None)
+        use_safetensors = kwargs.pop("use_safetensors", None)
+
+        allow_pickle = False
+        if use_safetensors is None:
+            use_safetensors = True
+            allow_pickle = True
+
+        user_agent = {
+            "file_type": "attn_procs_weights",
+            "framework": "pytorch",
+        }
+
+        state_dict = cls._fetch_state_dict(
+            pretrained_model_name_or_path_or_dict=pretrained_model_name_or_path_or_dict,
+            weight_name=weight_name,
+            use_safetensors=use_safetensors,
+            local_files_only=local_files_only,
+            cache_dir=cache_dir,
+            force_download=force_download,
+            proxies=proxies,
+            token=token,
+            revision=revision,
+            subfolder=subfolder,
+            user_agent=user_agent,
+            allow_pickle=allow_pickle,
+        )
+
+        return state_dict
 
     def prepare_image(
         self,

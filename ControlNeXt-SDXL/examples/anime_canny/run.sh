@@ -1,6 +1,6 @@
-python run_controlnext.py --pretrained_model_name_or_path "Lykon/AAM_XL_AnimeMix" \
-    --unet_model_name_or_path "pretrained/anime_canny/unet.safetensors" \
-    --controlnet_model_name_or_path "pretrained/anime_canny/controlnet.safetensors" \
+python run_controlnext.py --pretrained_model_name_or_path "neta-art/neta-xl-2.0" \
+    --unet_model_name_or_path "Eugeoter/controlnext-sdxl-anime-canny" \
+    --controlnet_model_name_or_path "Eugeoter/controlnext-sdxl-anime-canny" \
     --controlnet_scale 1.0 \
     --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
     --validation_prompt "3d style, photorealistic style, 1girl, arknights, amiya (arknights), solo, white background, upper body, looking at viewer, blush, closed mouth, low ponytail, black jacket, hooded jacket, open jacket, hood down, blue neckwear" \

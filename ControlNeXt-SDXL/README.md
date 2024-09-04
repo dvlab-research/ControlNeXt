@@ -92,17 +92,23 @@ bash examples/anime_canny/run.sh
 ### Canny Condition
 
 ```python
+# examples/anime_canny/run.sh
 python run_controlnext.py --pretrained_model_name_or_path "neta-art/neta-xl-2.0" \
   --unet_model_name_or_path "Eugeoter/controlnext-sdxl-anime-canny" \
   --controlnet_model_name_or_path "Eugeoter/controlnext-sdxl-anime-canny" \
-  --controlnet_scale 1.0 \
+  --controlnet_scale 1.0 \ # controlnet scale factor used to adjust the strength of the control condition
   --vae_model_name_or_path "madebyollin/sdxl-vae-fp16-fix" \
   --validation_prompt "3d style, photorealistic style, 1girl, arknights, amiya (arknights), solo, white background, upper body, looking at viewer, blush, closed mouth, low ponytail, black jacket, hooded jacket, open jacket, hood down, blue neckwear" \
   --negative_prompt "worst quality, abstract, clumsy pose, deformed hand, fused fingers, extra digits, fewer digits, fewer fingers, extra fingers, extra arm, missing arm, extra leg, missing leg, signature, artist name, multi views, disfigured, ugly" \
   --validation_image "examples/anime_canny/condition_0.png" \ # input canny image
   --output_dir "examples/anime_canny" \
-  --load_weight_increasement
+  --load_weight_increasement # load weight increasement
 ```
+
+We use a `controlnet_scale` factor to adjust the strength of the control condition.
+
+We recommend to only save & load the weights difference of the UNet's trainable parameters, i.e., $\Delta W = W_{finetune} - W_{pretrained}$, rather than the actual weight.
+This is useful when adapting to various base models since the weights difference is model-agnostic.
 
 ### Depth Condition
 

@@ -1,52 +1,5 @@
 import math
 from typing import Tuple, Union, Optional
-from safetensors.torch import load_file
-from transformers import PretrainedConfig
-
-
-def count_num_parameters_of_safetensors_model(safetensors_path):
-    state_dict = load_file(safetensors_path)
-    return sum(p.numel() for p in state_dict.values())
-
-
-def import_model_class_from_model_name_or_path(
-    pretrained_model_name_or_path: str, revision: str, subfolder: str = None
-):
-    text_encoder_config = PretrainedConfig.from_pretrained(
-        pretrained_model_name_or_path, revision=revision, subfolder=subfolder
-    )
-    model_class = text_encoder_config.architectures[0]
-    if model_class == "CLIPTextModel":
-        from transformers import CLIPTextModel
-        return CLIPTextModel
-    elif model_class == "CLIPTextModelWithProjection":
-        from transformers import CLIPTextModelWithProjection
-        return CLIPTextModelWithProjection
-    else:
-        raise ValueError(f"{model_class} is not supported.")
-
-
-def fix_clip_text_encoder_position_ids(text_encoder):
-    if hasattr(text_encoder.text_model.embeddings, "position_ids"):
-        text_encoder.text_model.embeddings.position_ids = text_encoder.text_model.embeddings.position_ids.long()
-
-
-def load_controlnext_unet_state_dict(unet_sd, controlnext_unet_sd):
-    assert all(
-        k in unet_sd for k in controlnext_unet_sd), f"controlnext unet state dict is not compatible with unet state dict, missing keys: {set(controlnext_unet_sd.keys()) - set(unet_sd.keys())}, extra keys: {set(unet_sd.keys()) - set(controlnext_unet_sd.keys())}"
-    for k in controlnext_unet_sd.keys():
-        unet_sd[k] = controlnext_unet_sd[k]
-    return unet_sd
-
-
-def convert_to_controlnext_unet_state_dict(state_dict):
-    import re
-    pattern = re.compile(r'.*attn2.*to_out.*')
-    state_dict = {k: v for k, v in state_dict.items() if pattern.match(k)}
-    # state_dict = extract_unet_state_dict(state_dict)
-    if is_sdxl_state_dict(state_dict):
-        state_dict = convert_sdxl_unet_state_dict_to_diffusers(state_dict)
-    return state_dict
 
 
 def make_unet_conversion_map():
@@ -164,27 +117,6 @@ def extract_unet_state_dict(state_dict):
         if k.startswith(UNET_KEY_PREFIX):
             unet_sd[k[len(UNET_KEY_PREFIX):]] = v
     return unet_sd
-
-
-def is_sdxl_state_dict(state_dict):
-    return any(key.startswith('input_blocks') for key in state_dict.keys())
-
-
-def contains_unet_keys(state_dict):
-    UNET_KEY_PREFIX = "model.diffusion_model."
-    return any(k.startswith(UNET_KEY_PREFIX) for k in state_dict.keys())
-
-
-def load_safetensors(model, safetensors_path, strict=True, load_weight_increasement=False):
-    if not load_weight_increasement:
-        state_dict = load_file(safetensors_path)
-        model.load_state_dict(state_dict, strict=strict)
-    else:
-        state_dict = load_file(safetensors_path)
-        pretrained_state_dict = model.state_dict()
-        for k in state_dict.keys():
-            state_dict[k] = state_dict[k] + pretrained_state_dict[k]
-        model.load_state_dict(state_dict, strict=False)
 
 
 def log_model_info(model, name):

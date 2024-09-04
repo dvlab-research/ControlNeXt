@@ -1,6 +1,7 @@
 import os
 import torch
 import cv2
+import gc
 import numpy as np
 import argparse
 from PIL import Image
@@ -111,6 +112,10 @@ def log_validation(
         formatted_images = cv2.cvtColor(formatted_images, cv2.COLOR_BGR2RGB)
         print("Save images to:", file_path)
         cv2.imwrite(file_path, formatted_images)
+
+    gc.collect()
+    if str(device) == 'cuda' and torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     return image_logs
 

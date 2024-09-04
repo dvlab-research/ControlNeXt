@@ -4,9 +4,77 @@ import torch
 from diffusers import UniPCMultistepScheduler, AutoencoderKL, ControlNetModel
 from safetensors.torch import load_file
 from pipeline.pipeline_controlnext import StableDiffusionXLControlNeXtPipeline
-from models.unet import UNet2DConditionModel, UNET_CONFIG
+from models.unet import UNet2DConditionModel
 from models.controlnet import ControlNetModel
 from . import utils
+
+UNET_CONFIG = {
+    "act_fn": "silu",
+    "addition_embed_type": "text_time",
+    "addition_embed_type_num_heads": 64,
+    "addition_time_embed_dim": 256,
+    "attention_head_dim": [
+        5,
+        10,
+        20
+    ],
+    "block_out_channels": [
+        320,
+        640,
+        1280
+    ],
+    "center_input_sample": False,
+    "class_embed_type": None,
+    "class_embeddings_concat": False,
+    "conv_in_kernel": 3,
+    "conv_out_kernel": 3,
+    "cross_attention_dim": 2048,
+    "cross_attention_norm": None,
+    "down_block_types": [
+        "DownBlock2D",
+        "CrossAttnDownBlock2D",
+        "CrossAttnDownBlock2D"
+    ],
+    "downsample_padding": 1,
+    "dual_cross_attention": False,
+    "encoder_hid_dim": None,
+    "encoder_hid_dim_type": None,
+    "flip_sin_to_cos": True,
+    "freq_shift": 0,
+    "in_channels": 4,
+    "layers_per_block": 2,
+    "mid_block_only_cross_attention": None,
+    "mid_block_scale_factor": 1,
+    "mid_block_type": "UNetMidBlock2DCrossAttn",
+    "norm_eps": 1e-05,
+    "norm_num_groups": 32,
+    "num_attention_heads": None,
+    "num_class_embeds": None,
+    "only_cross_attention": False,
+    "out_channels": 4,
+    "projection_class_embeddings_input_dim": 2816,
+    "resnet_out_scale_factor": 1.0,
+    "resnet_skip_time_act": False,
+    "resnet_time_scale_shift": "default",
+    "sample_size": 128,
+    "time_cond_proj_dim": None,
+    "time_embedding_act_fn": None,
+    "time_embedding_dim": None,
+    "time_embedding_type": "positional",
+    "timestep_post_act": None,
+    "transformer_layers_per_block": [
+        1,
+        2,
+        10
+    ],
+    "up_block_types": [
+        "CrossAttnUpBlock2D",
+        "CrossAttnUpBlock2D",
+        "UpBlock2D"
+    ],
+    "upcast_attention": None,
+    "use_linear_projection": True
+}
 
 CONTROLNET_CONFIG = {
     'in_channels': [128, 128],
@@ -83,6 +151,7 @@ def get_pipeline(
 
     pipeline.scheduler = UniPCMultistepScheduler.from_config(pipeline.scheduler.config)
     if unet_model_name_or_path is not None:
+        print(f"loading controlnext unet from {unet_model_name_or_path}")
         pipeline.load_controlnext_unet_weights(
             unet_model_name_or_path,
             load_weight_increasement=load_weight_increasement,
@@ -90,12 +159,14 @@ def get_pipeline(
             torch_dtype=torch.float16,
             cache_dir=hf_cache_dir,
         )
-    pipeline.load_controlnext_controlnet_weights(
-        controlnet_model_name_or_path,
-        use_safetensors=True,
-        torch_dtype=torch.float32,
-        cache_dir=hf_cache_dir,
-    )
+    if controlnet_model_name_or_path is not None:
+        print(f"loading controlnext controlnet from {controlnet_model_name_or_path}")
+        pipeline.load_controlnext_controlnet_weights(
+            controlnet_model_name_or_path,
+            use_safetensors=True,
+            torch_dtype=torch.float32,
+            cache_dir=hf_cache_dir,
+        )
     pipeline.set_progress_bar_config()
     pipeline = pipeline.to(device, dtype=torch.float16)
 

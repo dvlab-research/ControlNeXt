@@ -20,7 +20,7 @@ import numpy as np
 import PIL.Image
 import torch
 from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
-from models.controlnext_vid_svd import ControlNeXtSDVModel
+from models.controlnext_vid_svd import ControlNeXtSVDModel
 
 from diffusers.image_processor import VaeImageProcessor
 from diffusers.models import AutoencoderKLTemporalDecoder, UNetSpatioTemporalConditionModel
@@ -125,7 +125,7 @@ class StableVideoDiffusionPipelineControlNeXt(DiffusionPipeline):
         vae: AutoencoderKLTemporalDecoder,
         image_encoder: CLIPVisionModelWithProjection,
         unet: UNetSpatioTemporalConditionControlNeXtModel,
-        controlnext: ControlNeXtSDVModel,
+        controlnext: ControlNeXtSVDModel,
         scheduler: EulerDiscreteScheduler,
         feature_extractor: CLIPImageProcessor,
     ):

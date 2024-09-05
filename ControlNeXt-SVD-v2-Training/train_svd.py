@@ -59,7 +59,7 @@ from utils.dataset import WebVid10M
 from utils.vid_dataset import UBCFashion
 from models.unet_spatio_temporal_condition_controlnext import UNetSpatioTemporalConditionControlNeXtModel
 from pipeline.pipeline_stable_video_diffusion_controlnext import StableVideoDiffusionPipelineControlNeXt
-from models.controlnext_vid_svd import ControlNeXtSDVModel
+from models.controlnext_vid_svd import ControlNeXtSVDModel
 import torch.nn as nn
 import pdb
 from diffusers.utils.torch_utils import randn_tensor
@@ -920,7 +920,7 @@ def main():
     )
     
     logger.info("Initializing controlnext weights from unet")
-    controlnext = ControlNeXtSDVModel()
+    controlnext = ControlNeXtSVDModel()
 
     if args.controlnet_model_name_or_path:
         logger.info("Loading existing controlnet weights")

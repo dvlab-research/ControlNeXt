@@ -9,7 +9,7 @@ from diffusers.models.modeling_utils import ModelMixin
 from diffusers.models.resnet import Downsample2D, ResnetBlock2D
     
 
-class ControlNeXtSDVModel(ModelMixin, ConfigMixin):
+class ControlNeXtSVDModel(ModelMixin, ConfigMixin):
     _supports_gradient_checkpointing = True
 
     @register_to_config

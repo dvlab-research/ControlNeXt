@@ -337,7 +337,7 @@ class ControlProject(nn.Module):
     
 
 
-class ControlNeXtSDVModel(ModelMixin, ConfigMixin):
+class ControlNeXtSVDModel(ModelMixin, ConfigMixin):
 
     _supports_gradient_checkpointing = True
 

@@ -81,7 +81,6 @@ def image_grid(imgs, rows, cols):
     return grid
 
 
-
 def log_validation(
     vae, text_encoder, tokenizer, unet, controlnext, args, accelerator, weight_dtype, step, is_final_validation=False
 ):
@@ -141,7 +140,7 @@ def log_validation(
 
         for _ in range(args.num_validation_images):
             with inference_ctx:
-                
+
                 image = pipeline(
                     validation_prompt, validation_image, num_inference_steps=20, generator=generator
                 ).images[0]
@@ -905,7 +904,6 @@ def main(args):
         else:
             para.requires_grad = False
 
-
     optimizer = optimizer_class(
         params_to_optimize,
         lr=args.learning_rate,
@@ -975,6 +973,17 @@ def main(args):
         tracker_config.pop("validation_image")
 
         accelerator.init_trackers(args.tracker_project_name, config=tracker_config)
+
+    def patch_accelerator_for_fp16_training(accelerator):
+        org_unscale_grads = accelerator.scaler._unscale_grads_
+
+        def _unscale_grads_replacer(optimizer, inv_scale, found_inf, allow_fp16):
+            return org_unscale_grads(optimizer, inv_scale, found_inf, True)
+
+        accelerator.scaler._unscale_grads_ = _unscale_grads_replacer
+
+    if args.mixed_precision == "fp16":
+        patch_accelerator_for_fp16_training(accelerator)
 
     # Train!
     total_batch_size = args.train_batch_size * accelerator.num_processes * args.gradient_accumulation_steps
@@ -1049,8 +1058,7 @@ def main(args):
 
                 controlnext_image = batch["conditioning_pixel_values"].to(dtype=weight_dtype)
 
-                controlnext_output = controlnext( controlnext_image, timesteps)
-
+                controlnext_output = controlnext(controlnext_image, timesteps)
 
                 # Predict the noise residual
                 model_pred = unet(
@@ -1069,7 +1077,6 @@ def main(args):
                 else:
                     raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
                 loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
-
 
                 accelerator.backward(loss)
                 if accelerator.sync_gradients:
@@ -1135,8 +1142,6 @@ def main(args):
                             torch.save(save_unet, unet_path)
                             del save_unet
                             del unet_state_dict
-
-
 
                     if args.validation_prompt is not None and global_step % args.validation_steps == 0:
                         image_logs = log_validation(

@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from PIL import Image
 from pipeline.pipeline_stable_video_diffusion_controlnext import StableVideoDiffusionPipelineControlNeXt
-from models.controlnext_vid_svd import ControlNeXtSDVModel
+from models.controlnext_vid_svd import ControlNeXtSVDModel
 from models.unet_spatio_temporal_condition_controlnext import UNetSpatioTemporalConditionControlNeXtModel
 from transformers import CLIPVisionModelWithProjection
 import re 
@@ -221,7 +221,7 @@ if __name__ == "__main__":
         subfolder="unet",
         low_cpu_mem_usage=True,
     )
-    controlnext = ControlNeXtSDVModel()
+    controlnext = ControlNeXtSVDModel()
     controlnext.load_state_dict(load_tensor(args.controlnext_path))
     unet.load_state_dict(load_tensor(args.unet_path), strict=False)
 
